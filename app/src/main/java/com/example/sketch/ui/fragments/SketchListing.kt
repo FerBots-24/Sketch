@@ -1,5 +1,6 @@
 package com.example.sketch.ui.fragments
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -9,6 +10,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.example.sketch.R
 import com.example.sketch.databinding.FragmentSketchListingBinding
+import com.example.sketch.ui.activities.Editor
 import com.example.sketch.ui.adapters.SketchListRecyclerViewAdapter
 import com.example.sketch.ui.models.Sketch
 
@@ -32,10 +34,12 @@ class SketchListing : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val adapter = SketchListRecyclerViewAdapter({
-            val action = SketchListingDirections.actionSketchListingToSketchEditor()
-            findNavController().navigate(action)
-        })
+        val adapter = SketchListRecyclerViewAdapter {
+//            val action = SketchListingDirections.actionSketchListingToSketchEditor()
+//            findNavController().navigate(action)
+            val intent = Intent(activity, Editor::class.java)
+            startActivity(intent)
+        }
 
         binding.sketchListRv.adapter = adapter
         binding.sketchListRv.layoutManager = GridLayoutManager(requireContext(),2)
