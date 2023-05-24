@@ -24,12 +24,42 @@ class Editor : AppCompatActivity() {
             drawBtn.setOnClickListener {
                 Log.v("Vasi","change mode...draw")
                 sketchCanvas.setSelectMode(SelectMode.DRAW)
+                setBackgroundToModesTab(SelectMode.DRAW)
+                it.isActivated = true
             }
             eraseBtn.setOnClickListener {
                 Log.v("Vasi","change mode...erase")
                 sketchCanvas.setSelectMode(SelectMode.ERASE)
+                setBackgroundToModesTab(SelectMode.ERASE)
+                it.isActivated = true
+            }
+            selectBtn.setOnClickListener {
+                sketchCanvas.setSelectMode(SelectMode.SELECT)
+                setBackgroundToModesTab(SelectMode.SELECT)
             }
         }
 
+
+
+    }
+
+    fun setBackgroundToModesTab(mode: SelectMode){
+        when(mode){
+            SelectMode.SELECT -> {
+                binding.selectBtn.background = resources.getDrawable(R.drawable.mode_enabled)
+                binding.eraseBtn.background = null
+                binding.drawBtn.background = null
+            }
+            SelectMode.DRAW -> {
+                binding.selectBtn.background = null
+                binding.eraseBtn.background = null
+                binding.drawBtn.background = resources.getDrawable(R.drawable.mode_enabled)
+            }
+            SelectMode.ERASE -> {
+                binding.selectBtn.background = null
+                binding.eraseBtn.background = resources.getDrawable(R.drawable.mode_enabled)
+                binding.drawBtn.background = null
+            }
+        }
     }
 }

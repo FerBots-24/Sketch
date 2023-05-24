@@ -13,9 +13,11 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
-        android:layout_width="@dimen/_35sdp"
-        android:layout_height="match_parent"
-        android:layout_margin="@dimen/_12sdp"
+        android:layout_width="@dimen/_45sdp"
+        android:layout_height="wrap_content"
+        android:paddingVertical="@dimen/_12sdp"
+        android:paddingHorizontal="@dimen/_6sdp"
+        android:background="@drawable/mode_selector_tab_bg"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
