@@ -25,13 +25,11 @@ class Editor : AppCompatActivity() {
                 Log.v("Vasi","change mode...draw")
                 sketchCanvas.setSelectMode(SelectMode.DRAW)
                 setBackgroundToModesTab(SelectMode.DRAW)
-                it.isActivated = true
             }
             eraseBtn.setOnClickListener {
                 Log.v("Vasi","change mode...erase")
                 sketchCanvas.setSelectMode(SelectMode.ERASE)
                 setBackgroundToModesTab(SelectMode.ERASE)
-                it.isActivated = true
             }
             selectBtn.setOnClickListener {
                 sketchCanvas.setSelectMode(SelectMode.SELECT)
