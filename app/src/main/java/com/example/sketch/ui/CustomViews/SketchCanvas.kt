@@ -36,6 +36,10 @@ class SketchCanvas@JvmOverloads constructor(
 
     val scaleGestureDetector = ScaleGestureDetector(context, this)
 
+    var paintStrokeWidth: Float = 20f
+
+    var paintStrokeColor: String = "#FF6600"
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
@@ -45,6 +49,8 @@ class SketchCanvas@JvmOverloads constructor(
 
                 }
                 SelectMode.DRAW -> {
+                    drawPaint.strokeWidth = pathEvent.strokeWidth
+                    drawPaint.color = Color.parseColor(pathEvent.strokeColor)
                     canvas?.drawPath(pathEvent.path, drawPaint)
                 }
                 SelectMode.ERASE -> {
@@ -62,6 +68,13 @@ class SketchCanvas@JvmOverloads constructor(
         selectMode = mode
     }
 
+    fun setStrokeWidth(width:Float){
+        paintStrokeWidth = width
+    }
+
+    fun setStrokeColor(color:String){
+        paintStrokeColor = color
+    }
 
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
@@ -69,12 +82,12 @@ class SketchCanvas@JvmOverloads constructor(
 
             scaleGestureDetector.onTouchEvent(event)
 
-            if (!scaleGestureDetector.isInProgress()){
+            if (!scaleGestureDetector.isInProgress() && (selectMode == SelectMode.DRAW || selectMode == SelectMode.ERASE)){
                 Log.v("Vasi test","event occured....${event.action}")
                 val action = event.actionMasked
                 when(event.action){
                     MotionEvent.ACTION_DOWN->{
-                        pathList.add(PathEvent(path = Path(),selectMode = selectMode))
+                        pathList.add(PathEvent(path = Path(), selectMode = selectMode, strokeWidth = paintStrokeWidth, strokeColor = paintStrokeColor))
                         pathList[pathList.size - 1].path.moveTo(event.x, event.y)
                         invalidate()
                     }

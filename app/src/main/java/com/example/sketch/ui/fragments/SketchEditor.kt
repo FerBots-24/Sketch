@@ -32,17 +32,7 @@ class SketchEditor : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val sketchCanvas = binding.sketchCanvas
-        binding.apply {
-            drawBtn.setOnClickListener {
-                Log.v("Vasi","change mode...draw")
-                sketchCanvas.setSelectMode(SelectMode.DRAW)
-            }
-            eraseBtn.setOnClickListener {
-                Log.v("Vasi","change mode...erase")
-                sketchCanvas.setSelectMode(SelectMode.ERASE)
-            }
-        }
+
     }
 
 }
