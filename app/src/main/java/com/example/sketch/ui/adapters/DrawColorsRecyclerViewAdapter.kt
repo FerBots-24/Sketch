@@ -13,7 +13,7 @@ import com.example.sketch.databinding.SketchVhBinding
 import com.example.sketch.ui.models.ChooseColor
 import com.example.sketch.ui.models.Sketch
 
-class DrawColorsRecyclerViewAdapter (val context: Context, val setStrokeColorAction:(String)->Unit):
+class DrawColorsRecyclerViewAdapter (val context: Context, val setStrokeColorAction:(Int)->Unit):
     ListAdapter<ChooseColor, DrawColorsRecyclerViewAdapter.ColorCircleViewHolder>(Diffcallback){
 
     class ColorCircleViewHolder(private var binding: DrawColorCircleBinding): RecyclerView.ViewHolder(binding.root){
@@ -22,6 +22,8 @@ class DrawColorsRecyclerViewAdapter (val context: Context, val setStrokeColorAct
             binding.colorIv.setColorFilter(Color.parseColor(colorData.colorString), android.graphics.PorterDuff.Mode.MULTIPLY)
             if (colorData.isSelected){
                 binding.colorIv.background = context.resources.getDrawable(R.drawable.mode_enabled)
+            }else{
+                binding.colorIv.background = null
             }
         }
 
@@ -37,7 +39,7 @@ class DrawColorsRecyclerViewAdapter (val context: Context, val setStrokeColorAct
         var colorData = getItem(position)
         holder.bind(colorData, context)
         holder.itemView.setOnClickListener {
-            setStrokeColorAction(colorData.colorString)
+            setStrokeColorAction(position)
         }
     }
 
@@ -52,6 +54,4 @@ class DrawColorsRecyclerViewAdapter (val context: Context, val setStrokeColorAct
             }
         }
     }
-
-
 }

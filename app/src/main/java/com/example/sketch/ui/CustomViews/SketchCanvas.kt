@@ -25,11 +25,18 @@ class SketchCanvas@JvmOverloads constructor(
         strokeWidth = 20f
         style = Paint.Style.STROKE
     }
-    val erasePaint = Paint().apply {
+//    val erasePaint = Paint().apply {
+//        isAntiAlias = true
+//        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+//        strokeWidth = 30f
+//    }
+    val erasePaint = Paint().apply{
         isAntiAlias = true
-        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
+        style = Paint.Style.STROKE
         strokeWidth = 30f
+        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     }
+
     val pathList = mutableListOf<PathEvent>()
 
     var selectMode = SelectMode.DRAW
@@ -54,6 +61,7 @@ class SketchCanvas@JvmOverloads constructor(
                     canvas?.drawPath(pathEvent.path, drawPaint)
                 }
                 SelectMode.ERASE -> {
+                    erasePaint.strokeWidth = pathEvent.strokeWidth
                     canvas?.drawPath(pathEvent.path, erasePaint)
                 }
             }

@@ -5,9 +5,9 @@
     android:layout_height="wrap_content">
 
     <ImageView
-        android:layout_width="@dimen/_40sdp"
-        android:layout_height="@dimen/_40sdp"
-        android:padding="@dimen/_5sdp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:padding="7dp"
         android:src="@drawable/circle"
         app:tint="#E6E6E6"
         app:layout_constraintStart_toStartOf="parent"
@@ -17,11 +17,11 @@
 
     <ImageView
         android:id="@+id/color_iv"
-        android:layout_width="@dimen/_40sdp"
-        android:layout_height="@dimen/_40sdp"
-        android:padding="@dimen/_7sdp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:padding="9dp"
         android:src="@drawable/circle"
-        android:layout_marginHorizontal="@dimen/_4sdp"
+        android:layout_marginHorizontal="5dp"
         app:tint="#FF6600"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

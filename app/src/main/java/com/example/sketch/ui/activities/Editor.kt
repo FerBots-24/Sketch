@@ -1,10 +1,14 @@
 package com.example.sketch.ui.activities
 
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.ImageView
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.setPadding
+import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sketch.R
 import com.example.sketch.databinding.ActivityEditorBinding
@@ -20,29 +24,45 @@ class Editor : AppCompatActivity() {
 
     private lateinit var sketchCanvas: SketchCanvas
     private lateinit var colorsAdapter: DrawColorsRecyclerViewAdapter
-    var selectedColor = "#FFFF6600"
+    var selectedColorPosition = 0
+    val colorsViews = mutableListOf<ImageView>()
+    var colors = mutableListOf<String>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityEditorBinding.inflate(layoutInflater)
         val view: View = binding.getRoot()
         setContentView(view)
-        val colors = mutableListOf<ChooseColor>(
-            ChooseColor("#FF000000"),
-            ChooseColor("#FFFFFFFF"),
-            ChooseColor("#FFFF0000"),
-            ChooseColor("#FFFF6600", true),
-            ChooseColor("#FF0000FF"),
-            ChooseColor("#FF00FF00")
+        colors = mutableListOf<String>(
+            "#FF000000",
+            "#FFFFFFFF",
+            "#FFFF0000",
+            "#FFFF6600",
+            "#FF0000FF",
+           "#FF00FF00"
+        )
+        colorsViews.addAll(
+            listOf(
+                binding.color1Iv,
+                binding.color2Iv,
+                binding.color3Iv,
+                binding.color4Iv,
+                binding.color5Iv,
+                binding.color6Iv
+            )
         )
         sketchCanvas = binding.sketchCanvas
-        colorsAdapter = DrawColorsRecyclerViewAdapter(this){colorString->
-            colors.find { it.colorString == selectedColor }?.isSelected = false
-            colors.find { it.colorString == colorString }?.isSelected = true
-            selectedColor = colorString
-            sketchCanvas.setStrokeColor(colorString)
-            colorsAdapter.submitList(colors.toList())
-        }
+        sketchCanvas.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
+        setColorsTabAndOnClickListeners()
+//        colorsAdapter = DrawColorsRecyclerViewAdapter(this){position->
+//            colors[position] = colors[position].copy(isSelected = true)
+//            if (position != selectedColorPosition){
+//                colors[selectedColorPosition] = colors[selectedColorPosition].copy(isSelected = false)
+//            }
+//            selectedColorPosition = position
+//            sketchCanvas.setStrokeColor(colors[position].colorString)
+//            colorsAdapter.submitList(colors.toList())
+//        }
         binding.apply {
             drawBtn.setOnClickListener {
                 Log.v("Vasi","change mode...draw")
@@ -64,9 +84,7 @@ class Editor : AppCompatActivity() {
                 colorsLay.visibility = View.GONE
                 strokeWidthLay.visibility = View.GONE
             }
-            binding.colorsRv.adapter = colorsAdapter
-            binding.colorsRv.layoutManager = LinearLayoutManager(this@Editor, LinearLayoutManager.HORIZONTAL, false)
-            colorsAdapter.submitList(colors.toList())
+//            colorsAdapter.submitList(colors.toList())
             thicknessSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                     sketchCanvas.setStrokeWidth(progress.toFloat())
@@ -82,6 +100,72 @@ class Editor : AppCompatActivity() {
             })
         }
 
+    }
+
+    fun setColorsTabAndOnClickListeners(){
+        val density = resources.displayMetrics.density
+        val selectedPadding = (5 * density).toInt()
+        val unselectedPadding = (9 * density).toInt()
+
+        binding.apply {
+            color1Iv.setColorFilter(Color.parseColor(colors[0]), android.graphics.PorterDuff.Mode.MULTIPLY)
+            color2Iv.setColorFilter(Color.parseColor(colors[1]), android.graphics.PorterDuff.Mode.MULTIPLY)
+            color3Iv.setColorFilter(Color.parseColor(colors[2]), android.graphics.PorterDuff.Mode.MULTIPLY)
+            color4Iv.setColorFilter(Color.parseColor(colors[3]), android.graphics.PorterDuff.Mode.MULTIPLY)
+            color5Iv.setColorFilter(Color.parseColor(colors[4]), android.graphics.PorterDuff.Mode.MULTIPLY)
+            color6Iv.setColorFilter(Color.parseColor(colors[5]), android.graphics.PorterDuff.Mode.MULTIPLY)
+        }
+
+        binding.apply {
+            color1.setOnClickListener {
+                colorsViews.forEach {
+                    it.setPadding(unselectedPadding)
+                }
+                binding.color1Iv.setPadding(selectedPadding)
+                sketchCanvas.setStrokeColor(colors[0])
+                selectedColorPosition = 0
+            }
+            color2.setOnClickListener {
+                colorsViews.forEach {
+                    it.setPadding(unselectedPadding)
+                }
+                binding.color2Iv.setPadding(selectedPadding)
+                sketchCanvas.setStrokeColor(colors[1])
+                selectedColorPosition = 1
+            }
+            color3.setOnClickListener {
+                colorsViews.forEach {
+                    it.setPadding(unselectedPadding)
+                }
+                binding.color3Iv.setPadding(selectedPadding)
+                sketchCanvas.setStrokeColor(colors[2])
+                selectedColorPosition = 2
+            }
+            color4.setOnClickListener {
+                colorsViews.forEach {
+                    it.setPadding(unselectedPadding)
+                }
+                binding.color4Iv.setPadding(selectedPadding)
+                sketchCanvas.setStrokeColor(colors[3])
+                selectedColorPosition = 3
+            }
+            color5.setOnClickListener {
+                colorsViews.forEach {
+                    it.setPadding(unselectedPadding)
+                }
+                binding.color5Iv.setPadding(selectedPadding)
+                sketchCanvas.setStrokeColor(colors[4])
+                selectedColorPosition = 4
+            }
+            color6.setOnClickListener {
+                colorsViews.forEach {
+                    it.setPadding(unselectedPadding)
+                }
+                binding.color6Iv.setPadding(selectedPadding)
+                sketchCanvas.setStrokeColor(colors[5])
+                selectedColorPosition = 5
+            }
+        }
     }
 
     fun setBackgroundToModesTab(mode: SelectMode){
