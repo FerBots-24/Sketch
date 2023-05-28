@@ -8,14 +8,14 @@ import android.widget.ImageView
 import android.widget.SeekBar
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.setPadding
-import androidx.core.view.updatePadding
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.sketch.R
 import com.example.sketch.databinding.ActivityEditorBinding
 import com.example.sketch.ui.CustomViews.SketchCanvas
 import com.example.sketch.ui.adapters.DrawColorsRecyclerViewAdapter
-import com.example.sketch.ui.models.ChooseColor
 import com.example.sketch.ui.models.SelectMode
+import com.example.sketch.ui.dialogs.ColorPickerDialog
+import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
+
 
 class Editor : AppCompatActivity() {
 
@@ -33,6 +33,7 @@ class Editor : AppCompatActivity() {
         _binding = ActivityEditorBinding.inflate(layoutInflater)
         val view: View = binding.getRoot()
         setContentView(view)
+        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
         colors = mutableListOf<String>(
             "#FF000000",
             "#FFFFFFFF",
@@ -98,6 +99,32 @@ class Editor : AppCompatActivity() {
                 }
 
             })
+            swapColorBtn.setOnClickListener {
+
+                ColorPickerDialog {
+                    val colorString = "#${it}"
+                    Log.v("Vasi testing","swapped color received...${it}")
+                    colorsViews[selectedColorPosition].setColorFilter(Color.parseColor(colorString), android.graphics.PorterDuff.Mode.MULTIPLY)
+                    sketchCanvas.setStrokeColor(colorString)
+                    colors[selectedColorPosition] = colorString
+                }.show(supportFragmentManager,"color picker")
+
+//             ColorPickerDialog.Builder(this@Editor)
+//                    .setTitle("ColorPicker Dialog")
+//                    .setPreferenceName("MyColorPickerDialog")
+//                    .setPositiveButton(getString(com.example.sketch.R.string.confirm),
+//                        ColorEnvelopeListener { envelope, fromUser ->
+//                            Log.v("Vasi testing"," color...${envelope}")
+//                        }
+//                    )
+//                    .setNegativeButton(
+//                        getString(com.example.sketch.R.string.cancel)
+//                    ) { dialogInterface, i -> dialogInterface.dismiss() }
+//                    .attachAlphaSlideBar(true) // the default value is true.
+//                    .attachBrightnessSlideBar(true) // the default value is true.
+//                    .setBottomSpace(12) // set a bottom space between the last slidebar and buttons.
+//                    .show()
+            }
         }
 
     }
@@ -165,24 +192,31 @@ class Editor : AppCompatActivity() {
                 sketchCanvas.setStrokeColor(colors[5])
                 selectedColorPosition = 5
             }
+            //selecting color initially.
+            colorsViews.forEach {
+                it.setPadding(unselectedPadding)
+            }
+            binding.color6Iv.setPadding(selectedPadding)
+            sketchCanvas.setStrokeColor(colors[5])
+            selectedColorPosition = 5
         }
     }
 
     fun setBackgroundToModesTab(mode: SelectMode){
         when(mode){
             SelectMode.SELECT -> {
-                binding.selectBtn.background = resources.getDrawable(R.drawable.mode_enabled)
+                binding.selectBtn.background = resources.getDrawable(com.example.sketch.R.drawable.mode_enabled)
                 binding.eraseBtn.background = null
                 binding.drawBtn.background = null
             }
             SelectMode.DRAW -> {
                 binding.selectBtn.background = null
                 binding.eraseBtn.background = null
-                binding.drawBtn.background = resources.getDrawable(R.drawable.mode_enabled)
+                binding.drawBtn.background = resources.getDrawable(com.example.sketch.R.drawable.mode_enabled)
             }
             SelectMode.ERASE -> {
                 binding.selectBtn.background = null
-                binding.eraseBtn.background = resources.getDrawable(R.drawable.mode_enabled)
+                binding.eraseBtn.background = resources.getDrawable(com.example.sketch.R.drawable.mode_enabled)
                 binding.drawBtn.background = null
             }
         }

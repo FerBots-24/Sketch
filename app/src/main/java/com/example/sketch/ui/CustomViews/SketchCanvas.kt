@@ -1,14 +1,17 @@
 package com.example.sketch.ui.CustomViews
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
+import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.MotionEvent.INVALID_POINTER_ID
 import android.view.ScaleGestureDetector
 import android.view.ScaleGestureDetector.SimpleOnScaleGestureListener
 import android.view.View
+import androidx.core.view.GestureDetectorCompat
 import androidx.core.view.MotionEventCompat
 import com.example.sketch.ui.models.PathEvent
 import com.example.sketch.ui.models.SelectMode
@@ -18,39 +21,60 @@ class SketchCanvas@JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : View(context, attrs, defStyleAttr), ScaleGestureDetector.OnScaleGestureListener {
+) : View(context, attrs, defStyleAttr), ScaleGestureDetector.OnScaleGestureListener, GestureDetector.OnGestureListener {
 
-    val drawPaint = Paint().apply {
+    private val drawPaint = Paint().apply {
         color = Color.CYAN
         strokeWidth = 20f
         style = Paint.Style.STROKE
     }
-//    val erasePaint = Paint().apply {
-//        isAntiAlias = true
-//        xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
-//        strokeWidth = 30f
-//    }
-    val erasePaint = Paint().apply{
+
+    private val erasePaint = Paint().apply{
         isAntiAlias = true
         style = Paint.Style.STROKE
         strokeWidth = 30f
         xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     }
 
-    val pathList = mutableListOf<PathEvent>()
+    private val pathList = mutableListOf<PathEvent>()
 
-    var selectMode = SelectMode.DRAW
+    private val transformedPathList get() = transformPath(pathList)
 
-    val scaleGestureDetector = ScaleGestureDetector(context, this)
+    private var selectMode = SelectMode.DRAW
+
+    private val scaleGestureDetector = ScaleGestureDetector(context, this)
+
+    private val gestureListener = GestureDetectorCompat(context, this)
 
     var paintStrokeWidth: Float = 20f
 
-    var paintStrokeColor: String = "#FF6600"
+    var paintStrokeColor: String = "#FF0000000"
 
+    var scaleFactor = 1
+
+    var offsetX = 0f
+
+    var offsetY = 0f
+
+    val translateMatrix = Matrix()
+
+    fun transformPath(pathlist:MutableList<PathEvent>): MutableList<PathEvent>{
+        translateMatrix.setTranslate(-(offsetX), -(offsetY))
+        val transformedPathList = mutableListOf<PathEvent>()
+        pathlist.forEach {
+            transformedPathList.add(it.copy(
+                path = Path().apply {
+                    addPath(it.path)
+                    transform(translateMatrix)
+                }
+            ))
+        }
+        return transformedPathList
+    }
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
-        for (pathEvent in pathList){
+        for (pathEvent in transformedPathList){
             when(pathEvent.selectMode){
                 SelectMode.SELECT -> {
 
@@ -66,9 +90,6 @@ class SketchCanvas@JvmOverloads constructor(
                 }
             }
         }
-        canvas?.save();
-        canvas?.translate(500f, 500f);
-        canvas?.scale(2.0f, 2.0f)
     }
 
     @JvmName("setSelectMode1")
@@ -87,27 +108,28 @@ class SketchCanvas@JvmOverloads constructor(
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event != null) {
-
-            scaleGestureDetector.onTouchEvent(event)
-
-            if (!scaleGestureDetector.isInProgress() && (selectMode == SelectMode.DRAW || selectMode == SelectMode.ERASE)){
-                Log.v("Vasi test","event occured....${event.action}")
+            if (selectMode == SelectMode.DRAW || selectMode == SelectMode.ERASE){
                 val action = event.actionMasked
                 when(event.action){
                     MotionEvent.ACTION_DOWN->{
                         pathList.add(PathEvent(path = Path(), selectMode = selectMode, strokeWidth = paintStrokeWidth, strokeColor = paintStrokeColor))
-                        pathList[pathList.size - 1].path.moveTo(event.x, event.y)
+                        pathList[pathList.size - 1].path.moveTo(event.x + offsetX , event.y + offsetY )
                         invalidate()
                     }
                     MotionEvent.ACTION_MOVE->{
-                        pathList[pathList.size - 1].path.lineTo(event.x, event.y)
+                        pathList[pathList.size - 1].path.lineTo(event.x + offsetX , event.y + offsetY )
                         invalidate()
                     }
                     MotionEvent.ACTION_UP->{
-                        pathList[pathList.size - 1].path.lineTo(event.x, event.y)
+                        pathList[pathList.size - 1].path.lineTo(event.x + offsetX , event.y + offsetY )
                         invalidate()
                     }
                 }
+            }
+            else{
+                scaleGestureDetector.onTouchEvent(event)
+                gestureListener.onTouchEvent(event)
+                invalidate()
             }
         }
         return true
@@ -125,17 +147,39 @@ class SketchCanvas@JvmOverloads constructor(
     override fun onScaleEnd(detector: ScaleGestureDetector) {
     }
 
-}
+    override fun onDown(e: MotionEvent): Boolean {
+        return true
+    }
 
-//class ScaleGestureListener : SimpleOnScaleGestureListener() {
-//    override fun onScale(detector: ScaleGestureDetector): Boolean {
-//
-//        // Don't let the object get too small or too large.
-//        if (Deal.on === false) {
-//            mScaleFactor *= detector.scaleFactor
-//            mScaleFactor = Math.max(1f, Math.min(mScaleFactor, 20.0f))
-//        }
-//        invalidate()
-//        return true
-//    }
-//}
+    override fun onShowPress(e: MotionEvent) {
+    }
+
+    override fun onSingleTapUp(e: MotionEvent): Boolean {
+        return true
+    }
+
+    override fun onScroll(
+        e1: MotionEvent,
+        e2: MotionEvent,
+        distanceX: Float,
+        distanceY: Float
+    ): Boolean {
+        offsetX += distanceX
+        offsetY += distanceY
+        Log.v("Vasi testing","scroll detected...${distanceX}...${distanceY}...${offsetX}...${offsetY}")
+        return true
+    }
+
+    override fun onLongPress(e: MotionEvent) {
+    }
+
+    override fun onFling(
+        e1: MotionEvent,
+        e2: MotionEvent,
+        velocityX: Float,
+        velocityY: Float
+    ): Boolean {
+        return true
+    }
+
+}

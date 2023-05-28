@@ -61,4 +61,6 @@ dependencies {
     implementation 'de.hdodenhof:circleimageview:3.1.0'
 
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
+
+    implementation "com.github.skydoves:colorpickerpreference:2.0.6"
 }

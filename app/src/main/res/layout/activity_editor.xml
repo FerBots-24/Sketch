@@ -368,7 +368,7 @@
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <ImageView
-        android:id="@+id/add_color_btn"
+        android:id="@+id/swap_color_btn"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:src="@drawable/swap_vector"
