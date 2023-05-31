@@ -85,6 +85,12 @@ class Editor : AppCompatActivity() {
                 colorsLay.visibility = View.GONE
                 strokeWidthLay.visibility = View.GONE
             }
+            undoBtn.setOnClickListener {
+                sketchCanvas.undo()
+            }
+            redoBtn.setOnClickListener {
+                sketchCanvas.redo()
+            }
 //            colorsAdapter.submitList(colors.toList())
             thicknessSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener{
                 override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {

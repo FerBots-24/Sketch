@@ -36,9 +36,11 @@ class SketchCanvas@JvmOverloads constructor(
         xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     }
 
-    private val deScaledPathList = mutableListOf<PathEvent>()
+    private val deScaledPathEventList = mutableListOf<PathEvent>()
 
-    private val transformedPathList get() = transformPath(deScaledPathList)
+    private val transformedPathEventList get() = transformPath(deScaledPathEventList)
+
+    private val undonePathEventList = mutableListOf<PathEvent>()
 
     private var selectMode = SelectMode.DRAW
 
@@ -117,18 +119,18 @@ class SketchCanvas@JvmOverloads constructor(
 //            restore()
 //        }
 
-        for (pathEvent in transformedPathList){
+        for (pathEvent in transformedPathEventList){
             when(pathEvent.selectMode){
                 SelectMode.SELECT -> {
 
                 }
                 SelectMode.DRAW -> {
-                    drawPaint.strokeWidth = pathEvent.strokeWidth
+                    drawPaint.strokeWidth = (pathEvent.strokeWidth * scaleFactor)
                     drawPaint.color = Color.parseColor(pathEvent.strokeColor)
                     canvas?.drawPath(pathEvent.path, drawPaint)
                 }
                 SelectMode.ERASE -> {
-                    erasePaint.strokeWidth = pathEvent.strokeWidth
+                    erasePaint.strokeWidth = (pathEvent.strokeWidth * scaleFactor)
                     canvas?.drawPath(pathEvent.path, erasePaint)
                 }
             }
@@ -148,36 +150,43 @@ class SketchCanvas@JvmOverloads constructor(
         paintStrokeColor = color
     }
 
+    fun undo(){
+        deScaledPathEventList.lastOrNull()?.let {
+            undonePathEventList.add(it)
+            deScaledPathEventList.removeLastOrNull()
+            invalidate()
+        }
+    }
+
+    fun redo(){
+        undonePathEventList.lastOrNull()?.let {
+            deScaledPathEventList.add(it)
+            undonePathEventList.removeLastOrNull()
+            invalidate()
+        }
+    }
+
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event != null) {
             if (selectMode == SelectMode.DRAW || selectMode == SelectMode.ERASE){
-                val action = event.actionMasked
                 when(event.action){
                     MotionEvent.ACTION_DOWN->{
+                        undonePathEventList.clear()
                         currentPath = Path()
                         currentPath?.moveTo(event.x , event.y)
-                        deScaledPathList.add(PathEvent(path = deScalePath(currentPath!!), selectMode = selectMode, strokeWidth = paintStrokeWidth, strokeColor = paintStrokeColor) )
-//                        PathEvent(path = Path(), selectMode = selectMode, strokeWidth = paintStrokeWidth, strokeColor = paintStrokeColor).apply {
-//                            pathList.add(this)
-//                            pathList[pathList.size - 1].path.moveTo(event.x , event.y)
-//                        }
-//                        deScaledPathList.add(pathList[pathList.size - 1].copy( path = deScalePath(pathList[pathList.size - 1].path)))
+                        deScaledPathEventList.add(PathEvent(path = deScalePath(currentPath!!), selectMode = selectMode, strokeWidth = paintStrokeWidth / scaleFactor, strokeColor = paintStrokeColor) )
                         invalidate()
                     }
                     MotionEvent.ACTION_MOVE->{
                         currentPath?.lineTo(event.x , event.y)
-                        //pathList[pathList.size - 1].path.lineTo(event.x , event.y)
-                        deScaledPathList[deScaledPathList.size - 1] = deScaledPathList[deScaledPathList.size - 1].copy(path = deScalePath(currentPath!!))
+                        deScaledPathEventList[deScaledPathEventList.size - 1] = deScaledPathEventList[deScaledPathEventList.size - 1].copy(path = deScalePath(currentPath!!))
                         invalidate()
                     }
                     MotionEvent.ACTION_UP->{
                         currentPath?.lineTo(event.x , event.y)
-                        //pathList[pathList.size - 1].path.lineTo(event.x , event.y)
-                        deScaledPathList[deScaledPathList.size - 1] = deScaledPathList[deScaledPathList.size - 1].copy(path = deScalePath(currentPath!!))
+                        deScaledPathEventList[deScaledPathEventList.size - 1] = deScaledPathEventList[deScaledPathEventList.size - 1].copy(path = deScalePath(currentPath!!))
                         currentPath = null
-//                        pathList[pathList.size - 1].path.lineTo(event.x , event.y )
-//                        deScaledPathList[pathList.size - 1] = deScaledPathList[pathList.size - 1].copy(path = deScalePath(pathList[pathList.size - 1].path))
                         invalidate()
                     }
                 }

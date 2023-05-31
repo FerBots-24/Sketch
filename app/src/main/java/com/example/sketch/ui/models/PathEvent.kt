@@ -6,5 +6,5 @@ data class PathEvent(
     val path: Path,
     val selectMode: SelectMode,
     val strokeWidth: Float,
-    val strokeColor: String
+    val strokeColor: String,
 )
