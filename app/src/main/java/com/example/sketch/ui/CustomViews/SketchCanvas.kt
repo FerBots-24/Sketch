@@ -36,8 +36,6 @@ class SketchCanvas@JvmOverloads constructor(
         xfermode = PorterDuffXfermode(PorterDuff.Mode.CLEAR)
     }
 
-    private val pathList = mutableListOf<PathEvent>()
-
     private val deScaledPathList = mutableListOf<PathEvent>()
 
     private val transformedPathList get() = transformPath(deScaledPathList)
@@ -52,7 +50,7 @@ class SketchCanvas@JvmOverloads constructor(
 
     private var paintStrokeColor: String = "#FF0000000"
 
-    var scaleFactor = 1f
+    private var scaleFactor = 1f
 
     private var offsetX = 0f
 
@@ -60,19 +58,22 @@ class SketchCanvas@JvmOverloads constructor(
 
     private val translateMatrix = Matrix()
 
-    val scaleMatrix = Matrix()
+    private val deTranslateMatrix = Matrix()
+
+    private val scaleMatrix = Matrix()
 
     private val deScaleMatrix = Matrix()
 
-    private val rectf = RectF()
+    private var currentPath: Path? = null
 
     private fun deScalePath(path: Path): Path{
         val scaledPath = Path()
         scaledPath.addPath(path)
         return scaledPath.apply {
-            computeBounds(rectf,true)
-            deScaleMatrix.setScale(1/scaleFactor,1/scaleFactor, rectf.centerX(), rectf.centerY())
+            deScaleMatrix.setScale(1/scaleFactor,1/scaleFactor, (width.toFloat()/2), (height.toFloat()/2))
+            deTranslateMatrix.setTranslate(offsetX, offsetY)
             transform(deScaleMatrix)
+            transform(deTranslateMatrix)
         }
     }
 
@@ -83,10 +84,9 @@ class SketchCanvas@JvmOverloads constructor(
             transformedPathList.add(it.copy(
                 path = Path().apply {
                     addPath(it.path)
-                    //computeBounds(rectf,true)
-                    scaleMatrix.setScale(scaleFactor,scaleFactor, (width/2).toFloat(), (height/2).toFloat())
-                    transform(scaleMatrix)
+                    scaleMatrix.setScale(scaleFactor,scaleFactor, (width.toFloat()/2), (height.toFloat()/2))
                     transform(translateMatrix)
+                    transform(scaleMatrix)
                 }
             ))
         }
@@ -155,21 +155,29 @@ class SketchCanvas@JvmOverloads constructor(
                 val action = event.actionMasked
                 when(event.action){
                     MotionEvent.ACTION_DOWN->{
-                        PathEvent(path = Path(), selectMode = selectMode, strokeWidth = paintStrokeWidth, strokeColor = paintStrokeColor).apply {
-                            pathList.add(this)
-                            pathList[pathList.size - 1].path.moveTo(event.x + offsetX , event.y + offsetY )
-                        }
-                        deScaledPathList.add(pathList[pathList.size - 1].copy( path = deScalePath(pathList[pathList.size - 1].path)))
+                        currentPath = Path()
+                        currentPath?.moveTo(event.x , event.y)
+                        deScaledPathList.add(PathEvent(path = deScalePath(currentPath!!), selectMode = selectMode, strokeWidth = paintStrokeWidth, strokeColor = paintStrokeColor) )
+//                        PathEvent(path = Path(), selectMode = selectMode, strokeWidth = paintStrokeWidth, strokeColor = paintStrokeColor).apply {
+//                            pathList.add(this)
+//                            pathList[pathList.size - 1].path.moveTo(event.x , event.y)
+//                        }
+//                        deScaledPathList.add(pathList[pathList.size - 1].copy( path = deScalePath(pathList[pathList.size - 1].path)))
                         invalidate()
                     }
                     MotionEvent.ACTION_MOVE->{
-                        pathList[pathList.size - 1].path.lineTo(event.x + offsetX , event.y + offsetY )
-                        deScaledPathList[pathList.size - 1] = deScaledPathList[pathList.size - 1].copy(path = deScalePath(pathList[pathList.size - 1].path))
+                        currentPath?.lineTo(event.x , event.y)
+                        //pathList[pathList.size - 1].path.lineTo(event.x , event.y)
+                        deScaledPathList[deScaledPathList.size - 1] = deScaledPathList[deScaledPathList.size - 1].copy(path = deScalePath(currentPath!!))
                         invalidate()
                     }
                     MotionEvent.ACTION_UP->{
-                        pathList[pathList.size - 1].path.lineTo(event.x + offsetX , event.y + offsetY )
-                        deScaledPathList[pathList.size - 1] = deScaledPathList[pathList.size - 1].copy(path = deScalePath(pathList[pathList.size - 1].path))
+                        currentPath?.lineTo(event.x , event.y)
+                        //pathList[pathList.size - 1].path.lineTo(event.x , event.y)
+                        deScaledPathList[deScaledPathList.size - 1] = deScaledPathList[deScaledPathList.size - 1].copy(path = deScalePath(currentPath!!))
+                        currentPath = null
+//                        pathList[pathList.size - 1].path.lineTo(event.x , event.y )
+//                        deScaledPathList[pathList.size - 1] = deScaledPathList[pathList.size - 1].copy(path = deScalePath(pathList[pathList.size - 1].path))
                         invalidate()
                     }
                 }
@@ -213,8 +221,8 @@ class SketchCanvas@JvmOverloads constructor(
         distanceX: Float,
         distanceY: Float
     ): Boolean {
-        offsetX += distanceX
-        offsetY += distanceY
+        offsetX += (distanceX/scaleFactor)
+        offsetY += (distanceY/scaleFactor)
         Log.v("Vasi testing","scroll detected...${distanceX}...${distanceY}...${offsetX}...${offsetY}")
         return true
     }
