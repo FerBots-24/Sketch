@@ -38,7 +38,9 @@ class SketchCanvas@JvmOverloads constructor(
 
     private val pathList = mutableListOf<PathEvent>()
 
-    private val transformedPathList get() = transformPath(pathList)
+    private val deScaledPathList = mutableListOf<PathEvent>()
+
+    private val transformedPathList get() = transformPath(deScaledPathList)
 
     private var selectMode = SelectMode.DRAW
 
@@ -46,25 +48,44 @@ class SketchCanvas@JvmOverloads constructor(
 
     private val gestureListener = GestureDetectorCompat(context, this)
 
-    var paintStrokeWidth: Float = 20f
+    private var paintStrokeWidth: Float = 20f
 
-    var paintStrokeColor: String = "#FF0000000"
+    private var paintStrokeColor: String = "#FF0000000"
 
-    var scaleFactor = 1
+    var scaleFactor = 1f
 
-    var offsetX = 0f
+    private var offsetX = 0f
 
-    var offsetY = 0f
+    private var offsetY = 0f
 
-    val translateMatrix = Matrix()
+    private val translateMatrix = Matrix()
 
-    fun transformPath(pathlist:MutableList<PathEvent>): MutableList<PathEvent>{
+    val scaleMatrix = Matrix()
+
+    private val deScaleMatrix = Matrix()
+
+    private val rectf = RectF()
+
+    private fun deScalePath(path: Path): Path{
+        val scaledPath = Path()
+        scaledPath.addPath(path)
+        return scaledPath.apply {
+            computeBounds(rectf,true)
+            deScaleMatrix.setScale(1/scaleFactor,1/scaleFactor, rectf.centerX(), rectf.centerY())
+            transform(deScaleMatrix)
+        }
+    }
+
+    private fun transformPath(pathlist:MutableList<PathEvent>): MutableList<PathEvent>{
         translateMatrix.setTranslate(-(offsetX), -(offsetY))
         val transformedPathList = mutableListOf<PathEvent>()
         pathlist.forEach {
             transformedPathList.add(it.copy(
                 path = Path().apply {
                     addPath(it.path)
+                    //computeBounds(rectf,true)
+                    scaleMatrix.setScale(scaleFactor,scaleFactor, (width/2).toFloat(), (height/2).toFloat())
+                    transform(scaleMatrix)
                     transform(translateMatrix)
                 }
             ))
@@ -73,6 +94,28 @@ class SketchCanvas@JvmOverloads constructor(
     }
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
+
+//        canvas?.apply {
+//            save()
+//            scale(scaleFactor, scaleFactor, (width/2).toFloat(), (height/2).toFloat())
+//            for (pathEvent in transformedPathList){
+//                when(pathEvent.selectMode){
+//                    SelectMode.SELECT -> {
+//
+//                    }
+//                    SelectMode.DRAW -> {
+//                        drawPaint.strokeWidth = pathEvent.strokeWidth
+//                        drawPaint.color = Color.parseColor(pathEvent.strokeColor)
+//                        this.drawPath(pathEvent.path, drawPaint)
+//                    }
+//                    SelectMode.ERASE -> {
+//                        erasePaint.strokeWidth = pathEvent.strokeWidth
+//                        this.drawPath(pathEvent.path, erasePaint)
+//                    }
+//                }
+//            }
+//            restore()
+//        }
 
         for (pathEvent in transformedPathList){
             when(pathEvent.selectMode){
@@ -112,16 +155,21 @@ class SketchCanvas@JvmOverloads constructor(
                 val action = event.actionMasked
                 when(event.action){
                     MotionEvent.ACTION_DOWN->{
-                        pathList.add(PathEvent(path = Path(), selectMode = selectMode, strokeWidth = paintStrokeWidth, strokeColor = paintStrokeColor))
-                        pathList[pathList.size - 1].path.moveTo(event.x + offsetX , event.y + offsetY )
+                        PathEvent(path = Path(), selectMode = selectMode, strokeWidth = paintStrokeWidth, strokeColor = paintStrokeColor).apply {
+                            pathList.add(this)
+                            pathList[pathList.size - 1].path.moveTo(event.x + offsetX , event.y + offsetY )
+                        }
+                        deScaledPathList.add(pathList[pathList.size - 1].copy( path = deScalePath(pathList[pathList.size - 1].path)))
                         invalidate()
                     }
                     MotionEvent.ACTION_MOVE->{
                         pathList[pathList.size - 1].path.lineTo(event.x + offsetX , event.y + offsetY )
+                        deScaledPathList[pathList.size - 1] = deScaledPathList[pathList.size - 1].copy(path = deScalePath(pathList[pathList.size - 1].path))
                         invalidate()
                     }
                     MotionEvent.ACTION_UP->{
                         pathList[pathList.size - 1].path.lineTo(event.x + offsetX , event.y + offsetY )
+                        deScaledPathList[pathList.size - 1] = deScaledPathList[pathList.size - 1].copy(path = deScalePath(pathList[pathList.size - 1].path))
                         invalidate()
                     }
                 }
@@ -136,7 +184,8 @@ class SketchCanvas@JvmOverloads constructor(
     }
 
     override fun onScale(detector: ScaleGestureDetector): Boolean {
-        Log.v("Vasi test","scale...${detector.scaleFactor}")
+        Log.v("Vasi test","scale...${scaleFactor}")
+        scaleFactor *= detector.scaleFactor
         return true
     }
 
