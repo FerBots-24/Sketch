@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/splashScreen"
-        android:name="com.example.sketch.ui.fragments.SplashScreen"
+        android:name="com.TechFerbots.sketch.ui.fragments.SplashScreen"
         android:label="fragment_splash_screen"
         tools:layout="@layout/fragment_splash_screen" >
         <action
@@ -15,10 +15,16 @@
             app:destination="@id/sketchListing"
             app:popUpTo="@id/splashScreen"
             app:popUpToInclusive="true" />
+        <action
+            android:id="@+id/action_splashScreen_to_loginScreen2"
+            app:destination="@id/loginScreen"
+            app:popUpTo="@id/splashScreen"
+            app:popUpToInclusive="true" />
+
     </fragment>
     <fragment
         android:id="@+id/sketchListing"
-        android:name="com.example.sketch.ui.fragments.SketchListing"
+        android:name="com.TechFerbots.sketch.ui.fragments.SketchListing"
         android:label="fragment_sketch_listing"
         tools:layout="@layout/fragment_sketch_listing" >
         <action
@@ -27,7 +33,18 @@
     </fragment>
     <fragment
         android:id="@+id/sketchEditor"
-        android:name="com.example.sketch.ui.fragments.SketchEditor"
+        android:name="com.TechFerbots.sketch.ui.fragments.SketchEditor"
         android:label="fragment_sketch_editor"
         tools:layout="@layout/fragment_sketch_editor" />
+    <fragment
+        android:id="@+id/loginScreen"
+        android:name="com.TechFerbots.sketch.ui.fragments.LoginScreen"
+        android:label="fragment_login_screen"
+        tools:layout="@layout/fragment_login_screen" >
+        <action
+            android:id="@+id/action_loginScreen_to_sketchListing"
+            app:destination="@id/sketchListing"
+            app:popUpTo="@id/loginScreen"
+            app:popUpToInclusive="true" />
+    </fragment>
 </navigation>

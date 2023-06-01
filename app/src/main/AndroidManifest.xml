@@ -12,11 +12,11 @@
         android:theme="@style/Theme.Sketch"
         tools:targetApi="31" >
         <activity
-            android:name=".ui.activities.Editor"
+            android:name="com.TechFerbots.sketch.ui.activities.Editor"
             android:exported="false"
             android:screenOrientation="landscape"/>
         <activity
-            android:name=".ui.activities.MainActivity"
+            android:name="com.TechFerbots.sketch.ui.activities.MainActivity"
             android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>

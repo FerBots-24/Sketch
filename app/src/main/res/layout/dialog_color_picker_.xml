@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    tools:context=".ui.dialogs.ColorPickerDialog">
+    tools:context="com.TechFerbots.sketch.ui.dialogs.ColorPickerDialog">
 
     <com.skydoves.colorpickerview.ColorPickerView
         android:id="@+id/colorPickerView"

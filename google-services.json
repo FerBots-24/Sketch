@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "579527255478",
+    "project_id": "sketch-b8424",
+    "storage_bucket": "sketch-b8424.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:579527255478:android:295d3deea7e42c97150d17",
+        "android_client_info": {
+          "package_name": "com.example.sketch"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "579527255478-gn5eqpp3uup995g4ulshb07kvidva7gn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.sketch",
+            "certificate_hash": "340bcf72435880017d93e288e51b2deba9113f86"
+          }
+        },
+        {
+          "client_id": "579527255478-p4ekvm7sfpp4bsbchtcvbunb666uh8co.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDv4CySrppihdAlohuGzat1pFM2vOADHfk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "579527255478-p4ekvm7sfpp4bsbchtcvbunb666uh8co.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -10,5 +10,7 @@
 
 
     <color name="grey">#F5F5F5</color>
+
+    <color name="primary_textcolor">#FF000000</color>
 </resources>
 

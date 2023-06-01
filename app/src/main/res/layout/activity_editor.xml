@@ -4,9 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.activities.Editor">
+    tools:context="com.TechFerbots.sketch.ui.activities.Editor">
 
-    <com.example.sketch.ui.CustomViews.SketchCanvas
+    <com.TechFerbots.sketch.ui.CustomViews.SketchCanvas
         android:id="@+id/sketch_canvas"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
