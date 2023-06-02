@@ -7,8 +7,11 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SketchDao {
 
-    @Query("SELECT * from sketch")
+    @Query("SELECT * from SketchEntity")
     fun getSketches():Flow<List<SketchEntity>>
+
+    @Query("SELECT * from SketchEntity WHERE id = :id")
+    fun getSketch(id:Int):Flow<SketchEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(sketchEntity: SketchEntity)

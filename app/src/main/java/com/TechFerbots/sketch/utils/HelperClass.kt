@@ -1,4 +1,4 @@
-package com.TechFerbots.sketch.ui.utils
+package com.TechFerbots.sketch.utils
 
 import com.google.gson.Gson
 

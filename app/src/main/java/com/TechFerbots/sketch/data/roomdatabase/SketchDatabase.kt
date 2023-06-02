@@ -24,9 +24,7 @@ abstract class SketchDatabase: RoomDatabase() {
                     context.applicationContext,
                     SketchDatabase::class.java,
                     "sketch_database"
-                )
-                    .fallbackToDestructiveMigration()
-                    .build()
+                ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }
