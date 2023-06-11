@@ -30,6 +30,9 @@
         <action
             android:id="@+id/action_sketchListing_to_sketchEditor"
             app:destination="@id/sketchEditor" />
+        <action
+            android:id="@+id/action_sketchListing_to_sketchPropertiesSheet"
+            app:destination="@id/sketchPropertiesSheet" />
     </fragment>
     <fragment
         android:id="@+id/sketchEditor"
@@ -47,4 +50,13 @@
             app:popUpTo="@id/loginScreen"
             app:popUpToInclusive="true" />
     </fragment>
+    <dialog
+        android:id="@+id/sketchPropertiesSheet"
+        android:name="com.TechFerbots.sketch.ui.dialogs.SketchPropertiesSheet"
+        android:label="fragment_sketch_properties_sheet"
+        tools:layout="@layout/fragment_sketch_properties_sheet" >
+        <action
+            android:id="@+id/action_sketchPropertiesSheet_to_sketchEditor"
+            app:destination="@id/sketchEditor" />
+    </dialog>
 </navigation>

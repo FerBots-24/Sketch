@@ -20,7 +20,8 @@ class SketchListRecyclerViewAdapter (val toSketchAction:(id:Int)->Unit):
     class SketchViewHolder(private var binding: SketchVhBinding): RecyclerView.ViewHolder(binding.root){
 
         fun bind(sketch: Sketch){
-
+            binding.createdAtTv.text = sketch.createdAt
+            binding.modifiedAtTv.text = sketch.modifiedAt
         }
 
     }

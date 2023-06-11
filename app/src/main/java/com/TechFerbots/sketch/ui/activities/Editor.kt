@@ -35,6 +35,8 @@ import com.TechFerbots.sketch.utils.HelperClass
 import com.google.gson.Gson
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 
 class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
@@ -51,6 +53,7 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
     var selectedColorPosition = 0
     val colorsViews = mutableListOf<ImageView>()
     var colors = mutableListOf<String>()
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
     var tempstring = ""
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -273,6 +276,15 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
         sketchCanvas.setDeScaledPathEventList(
             HelperClass.gson.fromJson(pathEventListJson, SerializablePathEventsList::class.java)
         )
+    }
+
+
+    override fun onStop() {
+        super.onStop()
+        val currentTime = LocalDateTime.now().format(formatter)
+        sketchEditorViewModel.currentSketch?.let {
+            sketchEditorViewModel.updateSketch(it.copy(modifiedAt = currentTime.toString()).asSketchEntity())
+        }
     }
 
 

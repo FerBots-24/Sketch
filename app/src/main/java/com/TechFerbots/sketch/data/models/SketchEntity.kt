@@ -10,11 +10,17 @@ data class SketchEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     @ColumnInfo(name = "sketch_data")
-    val sketchData: String? = null
+    val sketchData: String? = null,
+    @ColumnInfo(name = "created_at")
+    val createdAt: String,
+    @ColumnInfo(name = "modified_at")
+    var modifiedAt: String
 )
 
 
 fun SketchEntity.asSketch() = Sketch(
     id = id,
-    sketchData = sketchData
+    sketchData = sketchData,
+    createdAt = createdAt,
+    modifiedAt = modifiedAt
 )
