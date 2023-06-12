@@ -6,10 +6,22 @@
     android:layout_height="match_parent"
     tools:context="com.TechFerbots.sketch.ui.activities.Editor">
 
-    <com.TechFerbots.sketch.ui.CustomViews.SketchCanvas
-        android:id="@+id/sketch_canvas"
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent">
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/bg_iv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+
+        <com.TechFerbots.sketch.ui.CustomViews.SketchCanvas
+            android:id="@+id/sketch_canvas"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/constraintLayout"
@@ -110,7 +122,33 @@
             app:layout_constraintTop_toBottomOf="@id/redo_btn"
             app:tint="#FF6600" />
 
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/bg_color_lay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/_8sdp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/undo_btn">
+
+            <ImageView
+                android:id="@+id/bg_color"
+                android:layout_width="@dimen/_40sdp"
+                android:layout_height="@dimen/_40sdp"
+                android:layout_marginHorizontal="@dimen/_4sdp"
+                android:padding="@dimen/_7sdp"
+                android:src="@drawable/circle"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:tint="#FF6600" />
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+
     </androidx.constraintlayout.widget.ConstraintLayout>
+
 
 
     <androidx.constraintlayout.widget.ConstraintLayout

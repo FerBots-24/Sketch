@@ -3,6 +3,7 @@ package com.TechFerbots.sketch.ui.fragments
 import android.content.Intent
 import android.os.Bundle
 import android.provider.SyncStateContract.Constants
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -36,6 +37,7 @@ class SketchListing : Fragment() {
 
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
+
     val sketchListingViewModel :SketchListingViewModel by activityViewModels {
         SketchListingViewModelFactory((activity?.application as SketchApplication).sketchRepository)
     }
@@ -46,6 +48,7 @@ class SketchListing : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED){
                 sketchListingViewModel.sketches.collect{
                     adapter.submitList(it.toList())
+
                 }
             }
         }
@@ -63,22 +66,23 @@ class SketchListing : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         adapter = SketchListRecyclerViewAdapter {
-            val action = SketchListingDirections.actionSketchListingToSketchPropertiesSheet()
+            val action = SketchListingDirections.actionSketchListingToSketchPropertiesSheet(it)
             findNavController().navigate(action)
-
-//            val intent = Intent(activity, Editor::class.java)
-//            intent.putExtra(com.TechFerbots.sketch.utils.Constants.SKETCH_ID,it)
-//            startActivity(intent)
         }
         binding.sketchListRv.adapter = adapter
         binding.sketchListRv.layoutManager = LinearLayoutManager(requireContext())
 
         binding.addSketchBtn.setOnClickListener {
             val currentTime = LocalDateTime.now().format(formatter)
-            sketchListingViewModel.addNewSketch(SketchEntity(
+            val newSketch = SketchEntity(
                 createdAt = currentTime.toString(),
                 modifiedAt = currentTime.toString()
-            ))
+            )
+            sketchListingViewModel.addNewSketch(newSketch)
+            //            val intent = Intent(activity, Editor::class.java)
+//            Log.v("Vasi testing","id..${newSketch.id}")
+//            intent.putExtra(com.TechFerbots.sketch.utils.Constants.SKETCH_ID,newSketch.id)
+//            startActivity(intent)
         }
 
     }

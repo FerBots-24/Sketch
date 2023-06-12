@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Path
 import android.graphics.PorterDuff
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -54,8 +55,6 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
     val colorsViews = mutableListOf<ImageView>()
     var colors = mutableListOf<String>()
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
-
-    var tempstring = ""
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityEditorBinding.inflate(layoutInflater)
@@ -89,6 +88,8 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
                     Log.v("Vasi testing","get sketch collect...${Gson().toJson(sketch)}")
                     if (sketchEditorViewModel.currentSketch == null){
                         sketchEditorViewModel.currentSketch = sketch
+                        binding.bgIv.background = ColorDrawable(Color.parseColor(sketch.bg))
+                        binding.bgColor.setColorFilter(Color.parseColor(sketch.bg), android.graphics.PorterDuff.Mode.MULTIPLY)
                         sketch.sketchData?.let { sPathEventsList->
                             deSerializePathEventList(sPathEventsList)
                         }
@@ -98,20 +99,21 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
                             deSerializePathEventList(sPathEventsList)
                         }
                     }
+                    else if(sketchEditorViewModel.currentSketch!!.bg != sketch.bg){
+                        binding.bgIv.background = ColorDrawable(Color.parseColor(sketch.bg))
+                    }
                 }
             }
         }
         setColorsTabAndOnClickListeners()
         binding.apply {
             drawBtn.setOnClickListener {
-                Log.v("Vasi","change mode...draw")
                 sketchCanvas.setSelectMode(SelectMode.DRAW)
                 setBackgroundToModesTab(SelectMode.DRAW)
                 colorsLay.visibility = View.VISIBLE
                 strokeWidthLay.visibility = View.VISIBLE
             }
             eraseBtn.setOnClickListener {
-                Log.v("Vasi","change mode...erase")
                 sketchCanvas.setSelectMode(SelectMode.ERASE)
                 setBackgroundToModesTab(SelectMode.ERASE)
                 colorsLay.visibility = View.GONE
@@ -152,6 +154,15 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
                     colors[selectedColorPosition] = colorString
                 }.show(supportFragmentManager,"color picker")
 
+            }
+            bgColorLay.setOnClickListener {
+                ColorPickerDialog{colorString->
+                    bgIv.background = ColorDrawable(Color.parseColor("#${colorString}"))
+                    bgColor.setColorFilter(Color.parseColor("#${colorString}"), android.graphics.PorterDuff.Mode.MULTIPLY)
+                    sketchEditorViewModel.currentSketch?.let{
+                        sketchEditorViewModel.updateSketch(it.copy(bg = "#${colorString}").asSketchEntity())
+                    }
+                }.show(supportFragmentManager,"bg_color")
             }
             saveBtn.setOnClickListener {
                 sketchEditorViewModel.currentSketch?.sketchData?.let { it1 ->

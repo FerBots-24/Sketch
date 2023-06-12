@@ -1,5 +1,6 @@
 package com.TechFerbots.sketch.ui.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -22,6 +23,7 @@ class SketchEditorViewModel (val sketchRepository: SketchRepository):ViewModel()
 
     fun updateSketch(sketchEntity: SketchEntity){
         currentSketch = sketchEntity.asSketch()
+        Log.v("Vasi testing","update sketch...${currentSketch?.bg}")
         viewModelScope.launch {
             sketchRepository.updateSketch(sketchEntity)
         }

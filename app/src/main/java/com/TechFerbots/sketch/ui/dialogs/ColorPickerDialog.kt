@@ -15,7 +15,7 @@ import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
 import com.skydoves.colorpickerview.listeners.ColorPickerViewListener
 
 
-class ColorPickerDialog(val swapColors:(String)-> Unit) : DialogFragment() {
+class ColorPickerDialog(val selectedColor:(String)-> Unit) : DialogFragment() {
 
     private var _binding :DialogColorPickerBinding? = null
     val binding get() = _binding!!
@@ -43,7 +43,7 @@ class ColorPickerDialog(val swapColors:(String)-> Unit) : DialogFragment() {
 
         binding.swapBtn.setOnClickListener {
             Log.v("Vasi testing","color swapped...${binding.colorPickerView.color}")
-            swapColors(currentColor)
+            selectedColor(currentColor)
             dismiss()
         }
         binding.cancelBtn.setOnClickListener {

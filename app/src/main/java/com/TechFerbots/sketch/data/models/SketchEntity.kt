@@ -14,7 +14,9 @@ data class SketchEntity(
     @ColumnInfo(name = "created_at")
     val createdAt: String,
     @ColumnInfo(name = "modified_at")
-    var modifiedAt: String
+    var modifiedAt: String,
+    @ColumnInfo(name = "bg")
+    var bg: String = "#00000000"
 )
 
 
@@ -22,5 +24,6 @@ fun SketchEntity.asSketch() = Sketch(
     id = id,
     sketchData = sketchData,
     createdAt = createdAt,
-    modifiedAt = modifiedAt
+    modifiedAt = modifiedAt,
+    bg = bg
 )

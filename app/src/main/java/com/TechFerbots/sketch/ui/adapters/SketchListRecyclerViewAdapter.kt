@@ -14,7 +14,7 @@ import com.example.sketch.databinding.SketchVhBinding
 import com.TechFerbots.sketch.ui.models.Sketch
 import java.lang.Exception
 
-class SketchListRecyclerViewAdapter (val toSketchAction:(id:Int)->Unit):
+class SketchListRecyclerViewAdapter (val toSketchAction:(sketch: Sketch)->Unit):
     ListAdapter<Sketch, SketchListRecyclerViewAdapter.SketchViewHolder>(Diffcallback){
 
     class SketchViewHolder(private var binding: SketchVhBinding): RecyclerView.ViewHolder(binding.root){
@@ -36,7 +36,7 @@ class SketchListRecyclerViewAdapter (val toSketchAction:(id:Int)->Unit):
         var sketchData = getItem(position)
         holder.bind(sketchData)
         holder.itemView.setOnClickListener {
-            toSketchAction(sketchData.id)
+            toSketchAction(sketchData)
         }
     }
 

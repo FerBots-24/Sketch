@@ -79,6 +79,7 @@
             app:layout_constraintWidth_percent=".45" />
 
         <androidx.appcompat.widget.AppCompatButton
+            android:id="@+id/edit_btn"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintBottom_toBottomOf="parent"
