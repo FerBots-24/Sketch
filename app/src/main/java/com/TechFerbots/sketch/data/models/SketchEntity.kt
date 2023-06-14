@@ -16,7 +16,9 @@ data class SketchEntity(
     @ColumnInfo(name = "modified_at")
     var modifiedAt: String,
     @ColumnInfo(name = "bg")
-    var bg: String = "#00000000"
+    var bg: String = "#00000000",
+    @ColumnInfo(name = "thumbnail_bitmap")
+    var thumbnailBitmap: ByteArray? = null
 )
 
 
@@ -25,5 +27,6 @@ fun SketchEntity.asSketch() = Sketch(
     sketchData = sketchData,
     createdAt = createdAt,
     modifiedAt = modifiedAt,
-    bg = bg
+    bg = bg,
+    thumbnailBitmap = thumbnailBitmap
 )

@@ -7,6 +7,7 @@
     tools:context="com.TechFerbots.sketch.ui.activities.Editor">
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/sketch_lay"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -70,6 +71,31 @@
             app:layout_constraintTop_toBottomOf="@id/draw_btn"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:tint="#FF6600" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/feature_tab"
+        android:layout_width="@dimen/_45sdp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/mode_selector_tab_bg"
+        android:paddingHorizontal="@dimen/_6sdp"
+        android:paddingVertical="@dimen/_12sdp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/camera_btn"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:padding="@dimen/_4sdp"
+            android:src="@drawable/camera_vector"
+            app:layout_constraintDimensionRatio="1:1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:tint="#FF6600" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,41 +1,45 @@
 package com.TechFerbots.sketch.ui.activities
 
-import android.content.SharedPreferences
-import android.graphics.Color
-import android.graphics.Path
-import android.graphics.PorterDuff
+import android.Manifest
+import android.content.pm.PackageManager
+import android.graphics.*
 import android.graphics.drawable.ColorDrawable
+import android.graphics.pdf.PdfDocument
 import android.os.Bundle
+import android.os.Environment
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContentProviderCompat.requireContext
+import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
-import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.TechFerbots.sketch.SketchApplication
-import com.example.sketch.databinding.ActivityEditorBinding
 import com.TechFerbots.sketch.ui.CustomViews.SketchCanvas
-import com.TechFerbots.sketch.ui.interfaces.SketchCanvasEventsHandler
 import com.TechFerbots.sketch.ui.adapters.DrawColorsRecyclerViewAdapter
-import com.TechFerbots.sketch.ui.models.SelectMode
 import com.TechFerbots.sketch.ui.dialogs.ColorPickerDialog
-import com.TechFerbots.sketch.ui.models.SerializablePathEventsList
+import com.TechFerbots.sketch.ui.interfaces.SketchCanvasEventsHandler
+import com.TechFerbots.sketch.ui.models.SelectMode
 import com.TechFerbots.sketch.ui.models.SerializablePathEvent
+import com.TechFerbots.sketch.ui.models.SerializablePathEventsList
 import com.TechFerbots.sketch.ui.models.asSketchEntity
 import com.TechFerbots.sketch.ui.viewmodels.SketchEditorViewModel
 import com.TechFerbots.sketch.ui.viewmodels.SketchEditorViewModelFactory
-import com.TechFerbots.sketch.ui.viewmodels.SketchListingViewModel
-import com.TechFerbots.sketch.ui.viewmodels.SketchListingViewModelFactory
 import com.TechFerbots.sketch.utils.Constants
 import com.TechFerbots.sketch.utils.HelperClass
+import com.example.sketch.databinding.ActivityEditorBinding
 import com.google.gson.Gson
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -44,6 +48,7 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
 
     private var _binding :ActivityEditorBinding?= null
     val binding get() = _binding!!
+    val PERMISSION_REQUEST_CODE = 101
 
     val sketchEditorViewModel : SketchEditorViewModel by viewModels {
         SketchEditorViewModelFactory((this.application as SketchApplication).sketchRepository)
@@ -171,6 +176,42 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
                     )
                 }
             }
+            cameraBtn.setOnClickListener {
+                if (checkPermission()){
+                    val view = binding.sketchCanvas
+                    val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+                    val can = Canvas(bitmap)
+                    view.draw(can)
+                    val pdf = PdfDocument()
+                    val pageInfo = PdfDocument.PageInfo.Builder(bitmap.width,bitmap.height,1).create()
+                    val page = pdf.startPage(pageInfo)
+                    val canvas = page.canvas
+                    val paint = Paint()
+                    paint.setColor(Color.parseColor("#FFFFFF"))
+                    canvas.drawPaint(paint)
+                    val bm = Bitmap.createScaledBitmap(bitmap,bitmap.width,bitmap.height,true)
+                    paint.setColor(Color.BLUE)
+                    canvas.drawBitmap(bm,0f,0f,null)
+                    pdf.finishPage(page)
+                    val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
+                    val file = File(path,"Sketch/${sketchEditorViewModel.currentSketch?.id}/20.pdf")
+                    if (file.parentFile?.exists() == false) {
+                        file.parentFile?.mkdirs()
+                    }
+                    try {
+                        val fileOutputStream = FileOutputStream(file)
+                        pdf.writeTo(fileOutputStream)
+                        Toast.makeText(this@Editor, "screenshot downloaded", Toast.LENGTH_SHORT).show()
+                    }catch (e:Exception){
+                        Log.v("MyActivity","${e}")
+                    }
+                    pdf.close()
+                }
+                else{
+                    requestPermission()
+                }
+            }
+
         }
 
     }
@@ -293,9 +334,64 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
     override fun onStop() {
         super.onStop()
         val currentTime = LocalDateTime.now().format(formatter)
+        val view = binding.sketchLay
+        view.setDrawingCacheEnabled(true)
+        view.buildDrawingCache()
+        val bm: Bitmap = view.getDrawingCache()
+        val stream = ByteArrayOutputStream()
+        bm.compress(Bitmap.CompressFormat.PNG, 90, stream)
+        val image = stream.toByteArray()
         sketchEditorViewModel.currentSketch?.let {
             sketchEditorViewModel.updateSketch(it.copy(modifiedAt = currentTime.toString()).asSketchEntity())
         }
+    }
+
+    private fun checkPermission(): Boolean {
+        // checking of permissions.
+        val permission1 = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        )
+        val permission2 = ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        )
+        return permission1 == PackageManager.PERMISSION_GRANTED && permission2 == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPermission() {
+        // requesting permissions if not provided.
+
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_EXTERNAL_STORAGE
+            ),
+            PERMISSION_REQUEST_CODE
+        )
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == PERMISSION_REQUEST_CODE) {
+            if (grantResults.size > 0) {
+                // after requesting permissions we are showing
+                // users a toast message of permission granted.
+                val writeStorage = grantResults[0] == PackageManager.PERMISSION_GRANTED
+                val readStorage = grantResults[1] == PackageManager.PERMISSION_GRANTED
+                if (writeStorage && readStorage) {
+                    Toast.makeText(this, "Permission Granted..", Toast.LENGTH_SHORT).show()
+                } else {
+                    Toast.makeText(this, "Permission Denied.", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
     }
 
 

@@ -8,11 +8,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.NavArgs
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.TechFerbots.sketch.SketchApplication
 import com.TechFerbots.sketch.ui.activities.Editor
 import com.TechFerbots.sketch.ui.models.Sketch
+import com.TechFerbots.sketch.ui.models.asSketchEntity
+import com.TechFerbots.sketch.ui.viewmodels.SketchListingViewModel
+import com.TechFerbots.sketch.ui.viewmodels.SketchListingViewModelFactory
 import com.example.sketch.R
 import com.example.sketch.databinding.FragmentSketchPropertiesSheetBinding
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -22,6 +27,10 @@ class SketchPropertiesSheet : BottomSheetDialogFragment() {
     private var _binding : FragmentSketchPropertiesSheetBinding? = null
     val binding get() = _binding!!
     val safeArgs:SketchPropertiesSheetArgs by navArgs()
+
+    val sketchListingViewModel : SketchListingViewModel by activityViewModels {
+        SketchListingViewModelFactory((activity?.application as SketchApplication).sketchRepository)
+    }
 
     private var currentSketch: Sketch? = null
 
@@ -49,6 +58,10 @@ class SketchPropertiesSheet : BottomSheetDialogFragment() {
                 startActivity(intent)
                 dismiss()
             }
+        }
+        binding.deleteBtn.setOnClickListener {
+            currentSketch?.let { sketch -> sketchListingViewModel.deleteSketch(sketch.asSketchEntity()) }
+            dismiss()
         }
     }
 

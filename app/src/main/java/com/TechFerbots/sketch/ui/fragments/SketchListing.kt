@@ -2,7 +2,6 @@ package com.TechFerbots.sketch.ui.fragments
 
 import android.content.Intent
 import android.os.Bundle
-import android.provider.SyncStateContract.Constants
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -13,7 +12,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.TechFerbots.sketch.SketchApplication
 import com.TechFerbots.sketch.data.models.SketchEntity
@@ -23,7 +21,6 @@ import com.TechFerbots.sketch.ui.adapters.SketchListRecyclerViewAdapter
 import com.TechFerbots.sketch.ui.models.Sketch
 import com.TechFerbots.sketch.ui.viewmodels.SketchListingViewModel
 import com.TechFerbots.sketch.ui.viewmodels.SketchListingViewModelFactory
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -37,6 +34,8 @@ class SketchListing : Fragment() {
 
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
 
+    val currentSketchList = mutableListOf<Sketch>()
+
 
     val sketchListingViewModel :SketchListingViewModel by activityViewModels {
         SketchListingViewModelFactory((activity?.application as SketchApplication).sketchRepository)
@@ -48,7 +47,8 @@ class SketchListing : Fragment() {
             repeatOnLifecycle(Lifecycle.State.STARTED){
                 sketchListingViewModel.sketches.collect{
                     adapter.submitList(it.toList())
-
+                    currentSketchList.clear()
+                    currentSketchList.addAll(it.toList())
                 }
             }
         }
@@ -75,14 +75,15 @@ class SketchListing : Fragment() {
         binding.addSketchBtn.setOnClickListener {
             val currentTime = LocalDateTime.now().format(formatter)
             val newSketch = SketchEntity(
+                id = currentSketchList.size + 1,
                 createdAt = currentTime.toString(),
                 modifiedAt = currentTime.toString()
             )
             sketchListingViewModel.addNewSketch(newSketch)
-            //            val intent = Intent(activity, Editor::class.java)
-//            Log.v("Vasi testing","id..${newSketch.id}")
-//            intent.putExtra(com.TechFerbots.sketch.utils.Constants.SKETCH_ID,newSketch.id)
-//            startActivity(intent)
+            val intent = Intent(activity, Editor::class.java)
+            Log.v("Vasi testing","id..${newSketch.id}")
+            intent.putExtra(com.TechFerbots.sketch.utils.Constants.SKETCH_ID,newSketch.id)
+            startActivity(intent)
         }
 
     }

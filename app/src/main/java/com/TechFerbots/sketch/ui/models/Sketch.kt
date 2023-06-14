@@ -10,7 +10,8 @@ data class Sketch(
     val sketchData: String? = null,
     val createdAt: String,
     var modifiedAt: String,
-    var bg: String = "#00000000"
+    var bg: String = "#00000000",
+    var thumbnailBitmap: ByteArray? = null
 ):Parcelable
 
 fun Sketch.asSketchEntity() = SketchEntity(
@@ -18,5 +19,6 @@ fun Sketch.asSketchEntity() = SketchEntity(
     sketchData = sketchData,
     createdAt = createdAt,
     modifiedAt = modifiedAt,
-    bg = bg
+    bg = bg,
+    thumbnailBitmap = thumbnailBitmap
 )

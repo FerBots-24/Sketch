@@ -9,7 +9,7 @@ import com.TechFerbots.sketch.data.dao.SketchDao
 import com.TechFerbots.sketch.data.models.SketchEntity
 
 
-@Database(entities = [SketchEntity::class], version = 2, exportSchema = false)
+@Database(entities = [SketchEntity::class], version = 3, exportSchema = false)
 abstract class SketchDatabase: RoomDatabase() {
 
     abstract fun sketchDao():SketchDao
