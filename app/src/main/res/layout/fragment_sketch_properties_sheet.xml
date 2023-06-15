@@ -27,29 +27,33 @@
         app:layout_constraintTop_toBottomOf="@id/sketch_iv">
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/textInputLayout"
+            android:id="@+id/title_et_lay"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:hint="Title"
             android:layout_marginEnd="@dimen/_6sdp"
+            android:layout_marginBottom="@dimen/_6sdp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/imageView"
+            app:layout_constraintEnd_toStartOf="@+id/edit_title_btn"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/title_et"
+                android:clickable="false"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
         </com.google.android.material.textfield.TextInputLayout>
 
         <ImageView
-            android:id="@+id/imageView"
+            android:id="@+id/edit_title_btn"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:padding="@dimen/_5sdp"
-            android:layout_marginTop="@dimen/_3sdp"
+            android:scaleType="centerCrop"
+            android:layout_marginVertical="@dimen/_6sdp"
             android:src="@drawable/edit_title_vector"
             android:background="@drawable/mode_enabled"
             app:layout_constraintBottom_toBottomOf="parent"

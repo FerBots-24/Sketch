@@ -74,8 +74,10 @@ class SketchListing : Fragment() {
 
         binding.addSketchBtn.setOnClickListener {
             val currentTime = LocalDateTime.now().format(formatter)
+            val noOfUntitledSketches = currentSketchList.filter { it.sketchTitle.startsWith("Untitled",false) }.size
             val newSketch = SketchEntity(
                 id = currentSketchList.size + 1,
+                sketchTitle = "Untitled_${noOfUntitledSketches + 1}",
                 createdAt = currentTime.toString(),
                 modifiedAt = currentTime.toString()
             )

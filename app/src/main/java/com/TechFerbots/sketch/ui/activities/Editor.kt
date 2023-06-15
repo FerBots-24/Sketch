@@ -1,10 +1,12 @@
 package com.TechFerbots.sketch.ui.activities
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
 import android.graphics.pdf.PdfDocument
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
@@ -15,6 +17,7 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import androidx.core.app.ShareCompat
 import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.core.content.ContextCompat
 import androidx.core.view.setPadding
@@ -182,30 +185,22 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
                     val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
                     val can = Canvas(bitmap)
                     view.draw(can)
-                    val pdf = PdfDocument()
-                    val pageInfo = PdfDocument.PageInfo.Builder(bitmap.width,bitmap.height,1).create()
-                    val page = pdf.startPage(pageInfo)
-                    val canvas = page.canvas
-                    val paint = Paint()
-                    paint.setColor(Color.parseColor("#FFFFFF"))
-                    canvas.drawPaint(paint)
-                    val bm = Bitmap.createScaledBitmap(bitmap,bitmap.width,bitmap.height,true)
-                    paint.setColor(Color.BLUE)
-                    canvas.drawBitmap(bm,0f,0f,null)
-                    pdf.finishPage(page)
+
                     val path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-                    val file = File(path,"Sketch/${sketchEditorViewModel.currentSketch?.id}/20.pdf")
+                    val file = File(path,"Sketch/${sketchEditorViewModel.currentSketch?.id}/22.png")
                     if (file.parentFile?.exists() == false) {
                         file.parentFile?.mkdirs()
                     }
                     try {
                         val fileOutputStream = FileOutputStream(file)
-                        pdf.writeTo(fileOutputStream)
+                        bitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+                        fileOutputStream.flush()
+                        fileOutputStream.close()
                         Toast.makeText(this@Editor, "screenshot downloaded", Toast.LENGTH_SHORT).show()
                     }catch (e:Exception){
                         Log.v("MyActivity","${e}")
                     }
-                    pdf.close()
+                    shareScreenShot(file)
                 }
                 else{
                     requestPermission()
@@ -214,6 +209,16 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
 
         }
 
+    }
+
+    private fun shareScreenShot(file:File){
+//        val filePath = File(file)
+//        val intent = ShareCompat.IntentBuilder(this)
+//            .setStream(Uri.fromFile(file))
+//            .setType("image/*")
+//            .intent
+//            .setAction(Intent.ACTION_VIEW)
+//        startActivity(intent)
     }
 
     fun setColorsTabAndOnClickListeners(){
@@ -335,14 +340,11 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
         super.onStop()
         val currentTime = LocalDateTime.now().format(formatter)
         val view = binding.sketchLay
-        view.setDrawingCacheEnabled(true)
-        view.buildDrawingCache()
-        val bm: Bitmap = view.getDrawingCache()
-        val stream = ByteArrayOutputStream()
-        bm.compress(Bitmap.CompressFormat.PNG, 90, stream)
-        val image = stream.toByteArray()
+        val bitmap = Bitmap.createBitmap(view.width, view.height, Bitmap.Config.ARGB_8888)
+        val can = Canvas(bitmap)
+        view.draw(can)
         sketchEditorViewModel.currentSketch?.let {
-            sketchEditorViewModel.updateSketch(it.copy(modifiedAt = currentTime.toString()).asSketchEntity())
+            sketchEditorViewModel.updateSketch(it.copy(modifiedAt = currentTime.toString(), thumbnailBitmap = bitmap).asSketchEntity())
         }
     }
 
@@ -391,6 +393,12 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
                 }
             }
         }
+
+    }
+
+    override fun onPause() {
+        super.onPause()
+
 
     }
 

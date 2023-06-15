@@ -22,6 +22,10 @@ class SketchListRecyclerViewAdapter (val toSketchAction:(sketch: Sketch)->Unit):
         fun bind(sketch: Sketch){
             binding.createdAtTv.text = sketch.createdAt
             binding.modifiedAtTv.text = sketch.modifiedAt
+            binding.title.text = sketch.sketchTitle
+            sketch.thumbnailBitmap?.let {
+                binding.sketchIv.setImageBitmap(it)
+            }
         }
 
     }

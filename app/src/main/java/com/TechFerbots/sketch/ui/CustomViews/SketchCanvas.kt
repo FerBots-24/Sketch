@@ -241,6 +241,7 @@ class SketchCanvas@JvmOverloads constructor(
 
     override fun onScale(detector: ScaleGestureDetector): Boolean {
         scaleFactor *= detector.scaleFactor
+        Log.v("Vasi testing","scale factor...${scaleFactor}")
         return true
     }
 

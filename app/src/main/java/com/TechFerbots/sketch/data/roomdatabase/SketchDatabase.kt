@@ -2,14 +2,13 @@ package com.TechFerbots.sketch.data.roomdatabase
 
 import android.content.Context
 import androidx.lifecycle.ViewModelProvider.NewInstanceFactory.Companion.instance
-import androidx.room.Database
-import androidx.room.Room
-import androidx.room.RoomDatabase
+import androidx.room.*
 import com.TechFerbots.sketch.data.dao.SketchDao
 import com.TechFerbots.sketch.data.models.SketchEntity
 
 
 @Database(entities = [SketchEntity::class], version = 3, exportSchema = false)
+@TypeConverters(SketchTypeConverter::class)
 abstract class SketchDatabase: RoomDatabase() {
 
     abstract fun sketchDao():SketchDao
