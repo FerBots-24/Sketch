@@ -330,9 +330,9 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
     }
 
     fun deSerializePathEventList(pathEventListJson:String){
-        sketchCanvas.setDeScaledPathEventList(
-            HelperClass.gson.fromJson(pathEventListJson, SerializablePathEventsList::class.java)
-        )
+//        sketchCanvas.setDeScaledPathEventList(
+//            HelperClass.gson.fromJson(pathEventListJson, SerializablePathEventsList::class.java)
+//        )
     }
 
 

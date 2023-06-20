@@ -19,6 +19,8 @@ class SketchCanvas@JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr), ScaleGestureDetector.OnScaleGestureListener, GestureDetector.OnGestureListener {
 
+    fun Any?.log(){ Log.e("sketchLog" ,this.toString() ) }
+
     private val drawPaint = Paint().apply {
         color = Color.CYAN
         strokeWidth = 20f
@@ -34,9 +36,12 @@ class SketchCanvas@JvmOverloads constructor(
 
     private var deScaledPathEventList = mutableListOf<PathEvent>()
 
-    private val transformedPathEventList get() = transformPath(deScaledPathEventList)
+    //private val transformedPathEventList get() = transformPath(deScaledPathEventList)
+    private val transformedPathEventList get() = transformPath(currentPathList)
 
     private val undonePathEventList = mutableListOf<PathEvent>()
+
+    private val currentPathList = mutableListOf<PathEvent>()
 
     private var selectMode = SelectMode.DRAW
 
@@ -80,13 +85,30 @@ class SketchCanvas@JvmOverloads constructor(
     }
 
     private fun transformPath(pathlist:MutableList<PathEvent>): MutableList<PathEvent>{
-        translateMatrix.setTranslate(-(offsetX), -(offsetY))
+//        translateMatrix.setTranslate(-(offsetX), -(offsetY))
+//        val transformedPathList = mutableListOf<PathEvent>()
+//        pathlist.forEach {
+//            transformedPathList.add(it.copy(
+//                path = Path().apply {
+//                    addPath(it.path)
+//                    scaleMatrix.setScale(scaleFactor,scaleFactor, (width.toFloat()/2), (height.toFloat()/2))
+//                    transform(translateMatrix)
+//                    transform(scaleMatrix)
+//                }
+//            ))
+//        }
         val transformedPathList = mutableListOf<PathEvent>()
+        Log.v("Vasi testing","path list...${pathlist}")
         pathlist.forEach {
             transformedPathList.add(it.copy(
                 path = Path().apply {
                     addPath(it.path)
-                    scaleMatrix.setScale(scaleFactor,scaleFactor, (width.toFloat()/2), (height.toFloat()/2))
+                    deScaleMatrix.setScale(1/it.scaleFactor,1/it.scaleFactor, (width.toFloat()/2), (height.toFloat()/2))
+                    deTranslateMatrix.setTranslate(it.offsetX, it.offsetY)
+                    translateMatrix.setTranslate((- (offsetX)), ( - (offsetY)))
+                    scaleMatrix.setScale((scaleFactor),(scaleFactor), (width.toFloat()/2), (height.toFloat()/2))
+                    transform(deScaleMatrix)
+                    transform(deTranslateMatrix)
                     transform(translateMatrix)
                     transform(scaleMatrix)
                 }
@@ -144,40 +166,40 @@ class SketchCanvas@JvmOverloads constructor(
         }
     }
 
-    fun setDeScaledPathEventList(serializablePathEventsList: SerializablePathEventsList){
-        val tempDeScaledPathEventsList = mutableListOf<PathEvent>()
-        serializablePathEventsList.pathEventsList.forEach { serializablePathEvent->
-            val tempPath = Path()
-            serializablePathEvent.path.forEach { pathUserAction ->
-                when (pathUserAction.actionType){
-                    PathUserActionType.MOVE_TO->{
-                        tempPath.moveTo(pathUserAction.point.x, pathUserAction.point.y)
-                    }
-                    PathUserActionType.LINE_TO->{
-                        tempPath.lineTo(pathUserAction.point.x, pathUserAction.point.y)
-                    }
-                }
-            }
-            tempDeScaledPathEventsList.add(
-                PathEvent(
-                    path = deScaleCustomUserPath(
-                        path = tempPath,
-                        customScaleFactor = serializablePathEvent.scaleFactor,
-                        customOffsetX = serializablePathEvent.offsetX,
-                        customOffsetY = serializablePathEvent.offsetY,
-                        customWidth = serializablePathEvent.width,
-                        customHeight = serializablePathEvent.height
-                    ),
-                    selectMode = serializablePathEvent.selectMode,
-                    strokeWidth = serializablePathEvent.strokeWidth,
-                    strokeColor = serializablePathEvent.strokeColor
-                )
-            )
-
-        }
-        deScaledPathEventList = tempDeScaledPathEventsList
-        invalidate()
-    }
+//    fun setDeScaledPathEventList(serializablePathEventsList: SerializablePathEventsList){
+//        val tempDeScaledPathEventsList = mutableListOf<PathEvent>()
+//        serializablePathEventsList.pathEventsList.forEach { serializablePathEvent->
+//            val tempPath = Path()
+//            serializablePathEvent.path.forEach { pathUserAction ->
+//                when (pathUserAction.actionType){
+//                    PathUserActionType.MOVE_TO->{
+//                        tempPath.moveTo(pathUserAction.point.x, pathUserAction.point.y)
+//                    }
+//                    PathUserActionType.LINE_TO->{
+//                        tempPath.lineTo(pathUserAction.point.x, pathUserAction.point.y)
+//                    }
+//                }
+//            }
+//            tempDeScaledPathEventsList.add(
+//                PathEvent(
+//                    path = deScaleCustomUserPath(
+//                        path = tempPath,
+//                        customScaleFactor = serializablePathEvent.scaleFactor,
+//                        customOffsetX = serializablePathEvent.offsetX,
+//                        customOffsetY = serializablePathEvent.offsetY,
+//                        customWidth = serializablePathEvent.width,
+//                        customHeight = serializablePathEvent.height
+//                    ),
+//                    selectMode = serializablePathEvent.selectMode,
+//                    strokeWidth = serializablePathEvent.strokeWidth,
+//                    strokeColor = serializablePathEvent.strokeColor
+//                )
+//            )
+//
+//        }
+//        deScaledPathEventList = tempDeScaledPathEventsList
+//        invalidate()
+//    }
 
     private fun deScaleCustomUserPath(path: Path, customScaleFactor:Float, customOffsetX:Float, customOffsetY:Float, customWidth:Int, customHeight:Int): Path{
         val scaledPath = Path()
@@ -210,19 +232,22 @@ class SketchCanvas@JvmOverloads constructor(
                             width = width,
                             height = height
                         )
-                        deScaledPathEventList.add(PathEvent(path = deScalePath(currentPath!!), selectMode = selectMode, strokeWidth = paintStrokeWidth / scaleFactor, strokeColor = paintStrokeColor) )
+                        deScaledPathEventList.add(PathEvent(path = deScalePath(currentPath!!), selectMode = selectMode, strokeWidth = paintStrokeWidth / scaleFactor, strokeColor = paintStrokeColor, scaleFactor = scaleFactor, offsetX = offsetX, offsetY = offsetY) )
+                        currentPathList.add(PathEvent(path = currentPath!!, selectMode = selectMode, strokeWidth = paintStrokeWidth / scaleFactor, strokeColor = paintStrokeColor, scaleFactor = scaleFactor, offsetX = offsetX, offsetY = offsetY))
                         invalidate()
                     }
                     MotionEvent.ACTION_MOVE->{
                         currentPath?.lineTo(event.x , event.y)
                         currentSerializablePathEvent?.path?.add(PathUserAction(point = TouchPoint(event.x, event.y), actionType = PathUserActionType.LINE_TO))
                         deScaledPathEventList[deScaledPathEventList.size - 1] = deScaledPathEventList[deScaledPathEventList.size - 1].copy(path = deScalePath(currentPath!!))
+                        currentPathList[currentPathList.size - 1] = currentPathList[currentPathList.size - 1].copy(path = currentPath!!)
                         invalidate()
                     }
                     MotionEvent.ACTION_UP->{
                         currentPath?.lineTo(event.x , event.y)
                         currentSerializablePathEvent?.path?.add(PathUserAction(point = TouchPoint(event.x, event.y), actionType = PathUserActionType.LINE_TO))
                         deScaledPathEventList[deScaledPathEventList.size - 1] = deScaledPathEventList[deScaledPathEventList.size - 1].copy(path = deScalePath(currentPath!!))
+                        currentPathList[currentPathList.size - 1] = currentPathList[currentPathList.size - 1].copy(path = currentPath!!)
                         sketchCanvasEventsHandler?.addPathEventToRoom(currentSerializablePathEvent!!)
                         currentSerializablePathEvent = null
                         currentPath = null
@@ -241,7 +266,7 @@ class SketchCanvas@JvmOverloads constructor(
 
     override fun onScale(detector: ScaleGestureDetector): Boolean {
         scaleFactor *= detector.scaleFactor
-        Log.v("Vasi testing","scale factor...${scaleFactor}")
+        "current scale factor...${scaleFactor}".log()
         return true
     }
 
@@ -271,6 +296,7 @@ class SketchCanvas@JvmOverloads constructor(
     ): Boolean {
         offsetX += (distanceX/scaleFactor)
         offsetY += (distanceY/scaleFactor)
+        "current offset...X...${offsetX}...Y...${offsetY}".log()
         return true
     }
 
