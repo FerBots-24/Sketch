@@ -103,14 +103,10 @@ class SketchCanvas@JvmOverloads constructor(
             transformedPathList.add(it.copy(
                 path = Path().apply {
                     addPath(it.path)
-                    deScaleMatrix.setScale(1/it.scaleFactor,1/it.scaleFactor, (width.toFloat()/2), (height.toFloat()/2))
-                    deTranslateMatrix.setTranslate(it.offsetX, it.offsetY)
-                    translateMatrix.setTranslate((- (offsetX)), ( - (offsetY)))
-                    scaleMatrix.setScale((scaleFactor),(scaleFactor), (width.toFloat()/2), (height.toFloat()/2))
+                    deScaleMatrix.setScale(scaleFactor/it.scaleFactor,scaleFactor/it.scaleFactor, (width.toFloat()/2), (height.toFloat()/2))
+                    translateMatrix.setTranslate(((-offsetX + (it.offsetX)) * scaleFactor), ((-offsetY + (it.offsetY)) * scaleFactor))
                     transform(deScaleMatrix)
-                    transform(deTranslateMatrix)
                     transform(translateMatrix)
-                    transform(scaleMatrix)
                 }
             ))
         }
@@ -294,6 +290,7 @@ class SketchCanvas@JvmOverloads constructor(
         distanceX: Float,
         distanceY: Float
     ): Boolean {
+        "offset before change...dx...${distanceX/scaleFactor}...dy...${distanceY/scaleFactor}...X...${offsetX}...Y...${offsetY}".log()
         offsetX += (distanceX/scaleFactor)
         offsetY += (distanceY/scaleFactor)
         "current offset...X...${offsetX}...Y...${offsetY}".log()
