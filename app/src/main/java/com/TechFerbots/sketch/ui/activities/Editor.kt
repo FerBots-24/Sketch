@@ -39,10 +39,11 @@ import com.TechFerbots.sketch.utils.Constants
 import com.TechFerbots.sketch.utils.HelperClass
 import com.example.sketch.databinding.ActivityEditorBinding
 import com.google.gson.Gson
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -63,6 +64,9 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
     val colorsViews = mutableListOf<ImageView>()
     var colors = mutableListOf<String>()
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+
+    val canvasPathDataComputationScope  = CoroutineScope(CoroutineName("SketchCanvasPathDataComputation"))
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityEditorBinding.inflate(layoutInflater)
@@ -88,6 +92,7 @@ class Editor : AppCompatActivity(), SketchCanvasEventsHandler {
             )
         )
         sketchCanvas = binding.sketchCanvas
+        sketchCanvas.setCoroutineScope(canvasPathDataComputationScope)
         sketchCanvas.sketchCanvasEventsHandler = this
         sketchCanvas.setLayerType(View.LAYER_TYPE_SOFTWARE, null)
         lifecycleScope.launch {

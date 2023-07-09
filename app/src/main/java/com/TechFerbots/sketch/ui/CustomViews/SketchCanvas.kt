@@ -9,8 +9,15 @@ import android.view.MotionEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import androidx.core.view.GestureDetectorCompat
+import androidx.lifecycle.MutableLiveData
 import com.TechFerbots.sketch.ui.interfaces.SketchCanvasEventsHandler
 import com.TechFerbots.sketch.ui.models.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.*
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
+import java.time.LocalDateTime
 
 
 class SketchCanvas@JvmOverloads constructor(
@@ -36,8 +43,7 @@ class SketchCanvas@JvmOverloads constructor(
 
     private var deScaledPathEventList = mutableListOf<PathEvent>()
 
-    //private val transformedPathEventList get() = transformPath(deScaledPathEventList)
-    private val transformedPathEventList get() = transformPath(currentPathList)
+    private var transformedPathEventList = mutableListOf<PathEvent>()
 
     private val undonePathEventList = mutableListOf<PathEvent>()
 
@@ -53,11 +59,11 @@ class SketchCanvas@JvmOverloads constructor(
 
     private var paintStrokeColor: String = "#FF0000000"
 
-    private var scaleFactor = 1f
+    private var scaleFactor = BigDecimal(1)
 
-    private var offsetX = 0f
+    private var offsetX = mutableListOf<Pair<Float, BigDecimal>>()
 
-    private var offsetY = 0f
+    private var offsetY = mutableListOf<Pair<Float, BigDecimal>>()
 
     private val translateMatrix = Matrix()
 
@@ -73,64 +79,108 @@ class SketchCanvas@JvmOverloads constructor(
 
     var sketchCanvasEventsHandler: SketchCanvasEventsHandler? = null
 
-    private fun deScalePath(path: Path): Path{
-        val scaledPath = Path()
-        scaledPath.addPath(path)
-        return scaledPath.apply {
-            deScaleMatrix.setScale(1/scaleFactor,1/scaleFactor, (width.toFloat()/2), (height.toFloat()/2))
-            deTranslateMatrix.setTranslate(offsetX, offsetY)
-            transform(deScaleMatrix)
-            transform(deTranslateMatrix)
+    private lateinit var pathDataComputationCoroutineScope: CoroutineScope
+
+    private val transformPathLazyJobsFlow =  MutableSharedFlow<Job>()
+
+
+
+
+    fun setCoroutineScope(coroutineScope:CoroutineScope){
+        pathDataComputationCoroutineScope = coroutineScope
+        pathDataComputationCoroutineScope.launch {
+            transformPathLazyJobsFlow.collect {
+                Log.v("Vasi testing","job start...${LocalDateTime.now()}")
+                it.start()
+                it.join()
+                Log.v("Vasi testing","job end...${LocalDateTime.now()}")
+            }
         }
     }
 
-    private fun transformPath(pathlist:MutableList<PathEvent>): MutableList<PathEvent>{
-//        translateMatrix.setTranslate(-(offsetX), -(offsetY))
-//        val transformedPathList = mutableListOf<PathEvent>()
-//        pathlist.forEach {
-//            transformedPathList.add(it.copy(
+
+//    private fun deScalePath(path: Path): Path{
+//        val scaledPath = Path()
+//        scaledPath.addPath(path)
+//        return scaledPath.apply {
+//            deScaleMatrix.setScale(1/(scaleFactor.toFloat()),1/(scaleFactor.toFloat()), (width.toFloat()/2), (height.toFloat()/2))
+//            deTranslateMatrix.setTranslate(offsetX.toFloat(), offsetY.toFloat())
+//            transform(deScaleMatrix)
+//            transform(deTranslateMatrix)
+//        }
+//    }
+
+
+    private suspend fun transformPath(pathList:MutableList<PathEvent>){
+        Log.v("Vasi testing","transform start...${LocalDateTime.now()}")
+        val transformedPathList = mutableListOf<PathEvent>()
+        val currentOffsetX = calculateOffset(offsetX.toList(), scaleFactor)
+        val currentOffsetY = calculateOffset(offsetY.toList(), scaleFactor)
+        val transformPathEventDefferedList = mutableListOf<Deferred<PathEvent>>()
+        pathList.forEach {
+            transformPathEventDefferedList.add(
+                pathDataComputationCoroutineScope.async {
+                    it.copy(
+                        path = Path().apply {
+                            addPath(it.path)
+                            val pathOffsetX = calculateOffset(it.offsetX, scaleFactor)
+                            val pathOffsetY = calculateOffset(it.offsetY, scaleFactor)
+                            deScaleMatrix.setScale(scaleFactor.divide(it.scaleFactor, MathContext(10)).toFloat(),scaleFactor.divide(it.scaleFactor, MathContext(10)).toFloat(), (width.toFloat()/2), (height.toFloat()/2))
+                            translateMatrix.setTranslate(((currentOffsetX.negate().add(pathOffsetX)).multiply(scaleFactor).toFloat()), ((currentOffsetY.negate().add(pathOffsetY)).multiply(scaleFactor)).toFloat())
+                            transform(deScaleMatrix)
+                            transform(translateMatrix)
+                        }
+                    )
+                }
+            )
+        }
+        transformPathEventDefferedList.forEach {
+            transformedPathList.add(it.await())
+        }
+        transformedPathEventList =  transformedPathList
+        invalidate()
+
+        //            transformedPathList.add(it.copy(
 //                path = Path().apply {
 //                    addPath(it.path)
-//                    scaleMatrix.setScale(scaleFactor,scaleFactor, (width.toFloat()/2), (height.toFloat()/2))
+//                    val pathOffsetX = calculateOffset(it.offsetX, scaleFactor)
+//                    val pathOffsetY = calculateOffset(it.offsetY, scaleFactor)
+//                    "c scale...X...${scaleFactor}..".log()
+//                    "p scale...X...${it.scaleFactor}..".log()
+//                    "descale...X...${scaleFactor.divide(it.scaleFactor, MathContext(10)).toFloat()}..".log()
+//                    "translate...X...${((currentOffsetX.negate().add(pathOffsetX)).multiply(scaleFactor).toFloat())}..".log()
+//                    deScaleMatrix.setScale(scaleFactor.divide(it.scaleFactor, MathContext(10)).toFloat(),scaleFactor.divide(it.scaleFactor, MathContext(10)).toFloat(), (width.toFloat()/2), (height.toFloat()/2))
+//                    translateMatrix.setTranslate(((currentOffsetX.negate().add(pathOffsetX)).multiply(scaleFactor).toFloat()), ((currentOffsetY.negate().add(pathOffsetY)).multiply(scaleFactor)).toFloat())
+//                    transform(deScaleMatrix)
 //                    transform(translateMatrix)
-//                    transform(scaleMatrix)
 //                }
 //            ))
-//        }
-        val transformedPathList = mutableListOf<PathEvent>()
-        Log.v("Vasi testing","path list...${pathlist}")
-        pathlist.forEach {
-            transformedPathList.add(it.copy(
-                path = Path().apply {
-                    addPath(it.path)
-                    deScaleMatrix.setScale(scaleFactor/it.scaleFactor,scaleFactor/it.scaleFactor, (width.toFloat()/2), (height.toFloat()/2))
-                    translateMatrix.setTranslate(((-offsetX + (it.offsetX)) * scaleFactor), ((-offsetY + (it.offsetY)) * scaleFactor))
-                    transform(deScaleMatrix)
-                    transform(translateMatrix)
-                }
-            ))
-        }
-        return transformedPathList
     }
+
+    val precision = MathContext(10)
+
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
 
+        Log.v("Vasi testing","on draw start...${LocalDateTime.now()}")
         for (pathEvent in transformedPathEventList){
+            val scaleDiff = scaleFactor.divide(pathEvent.scaleFactor, precision).toFloat()
             when(pathEvent.selectMode){
                 SelectMode.SELECT -> {
 
                 }
                 SelectMode.DRAW -> {
-                    drawPaint.strokeWidth = (pathEvent.strokeWidth * scaleFactor)
+                    drawPaint.strokeWidth = (pathEvent.strokeWidth * scaleDiff)
                     drawPaint.color = Color.parseColor(pathEvent.strokeColor)
                     canvas?.drawPath(pathEvent.path, drawPaint)
                 }
                 SelectMode.ERASE -> {
-                    erasePaint.strokeWidth = (pathEvent.strokeWidth * scaleFactor)
+                    erasePaint.strokeWidth = (pathEvent.strokeWidth * scaleDiff)
                     canvas?.drawPath(pathEvent.path, erasePaint)
                 }
             }
         }
+        Log.v("Vasi testing","on draw end...${LocalDateTime.now()}")
     }
 
     @JvmName("setSelectMode1")
@@ -208,6 +258,8 @@ class SketchCanvas@JvmOverloads constructor(
         }
     }
 
+    var prevPoint: TouchPoint? = null
+
 
     override fun onTouchEvent(event: MotionEvent?): Boolean {
         if (event != null) {
@@ -217,52 +269,92 @@ class SketchCanvas@JvmOverloads constructor(
                         undonePathEventList.clear()
                         currentPath = Path()
                         currentPath?.moveTo(event.x , event.y)
-                        currentSerializablePathEvent = SerializablePathEvent(
-                            path = mutableListOf(PathUserAction(point = TouchPoint(event.x, event.y), actionType = PathUserActionType.MOVE_TO)),
-                            selectMode = selectMode,
-                            strokeWidth = paintStrokeWidth / scaleFactor,
-                            strokeColor = paintStrokeColor,
-                            scaleFactor = scaleFactor,
-                            offsetX = offsetX,
-                            offsetY = offsetY,
-                            width = width,
-                            height = height
-                        )
-                        deScaledPathEventList.add(PathEvent(path = deScalePath(currentPath!!), selectMode = selectMode, strokeWidth = paintStrokeWidth / scaleFactor, strokeColor = paintStrokeColor, scaleFactor = scaleFactor, offsetX = offsetX, offsetY = offsetY) )
-                        currentPathList.add(PathEvent(path = currentPath!!, selectMode = selectMode, strokeWidth = paintStrokeWidth / scaleFactor, strokeColor = paintStrokeColor, scaleFactor = scaleFactor, offsetX = offsetX, offsetY = offsetY))
-                        invalidate()
+                        prevPoint = TouchPoint(event.x, event.y)
+//                        currentSerializablePathEvent = SerializablePathEvent(
+//                            path = mutableListOf(PathUserAction(point = TouchPoint(event.x, event.y), actionType = PathUserActionType.MOVE_TO)),
+//                            selectMode = selectMode,
+//                            strokeWidth = paintStrokeWidth / scaleFactor,
+//                            strokeColor = paintStrokeColor,
+//                            scaleFactor = scaleFactor,
+//                            offsetX = offsetX,
+//                            offsetY = offsetY,
+//                            width = width,
+//                            height = height
+//                        )
+                        //deScaledPathEventList.add(PathEvent(path = deScalePath(currentPath!!), selectMode = selectMode, strokeWidth = paintStrokeWidth, strokeColor = paintStrokeColor, scaleFactor = scaleFactor, offsetX = offsetX, offsetY = offsetY) )
+                        currentPathList.add(PathEvent(path = currentPath!!, selectMode = selectMode, strokeWidth = paintStrokeWidth, strokeColor = paintStrokeColor, scaleFactor = scaleFactor, offsetX = offsetX.toList(), offsetY = offsetY.toList()))
+                        val transformJob = pathDataComputationCoroutineScope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
+                            transformPath(currentPathList)
+                        }
+                        GlobalScope.launch {
+                            transformPathLazyJobsFlow.emit(transformJob)
+                        }
                     }
                     MotionEvent.ACTION_MOVE->{
-                        currentPath?.lineTo(event.x , event.y)
-                        currentSerializablePathEvent?.path?.add(PathUserAction(point = TouchPoint(event.x, event.y), actionType = PathUserActionType.LINE_TO))
-                        deScaledPathEventList[deScaledPathEventList.size - 1] = deScaledPathEventList[deScaledPathEventList.size - 1].copy(path = deScalePath(currentPath!!))
+                        Log.v("move event","move event...${currentPathList.size - 1}...${event.x}...${event.y}")
+
+                        prevPoint?.let {
+                            currentPath?.quadTo(it.x, it.y, event.x , event.y)
+                        }
+                        prevPoint = TouchPoint(event.x, event.y)
                         currentPathList[currentPathList.size - 1] = currentPathList[currentPathList.size - 1].copy(path = currentPath!!)
-                        invalidate()
+                        val transformJob = pathDataComputationCoroutineScope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
+                            transformPath(currentPathList)
+                        }
+                        GlobalScope.launch {
+                            transformPathLazyJobsFlow.emit(transformJob)
+                        }
+                        //currentSerializablePathEvent?.path?.add(PathUserAction(point = TouchPoint(event.x, event.y), actionType = PathUserActionType.LINE_TO))
+                        //deScaledPathEventList[deScaledPathEventList.size - 1] = deScaledPathEventList[deScaledPathEventList.size - 1].copy(path = deScalePath(currentPath!!))
                     }
                     MotionEvent.ACTION_UP->{
                         currentPath?.lineTo(event.x , event.y)
-                        currentSerializablePathEvent?.path?.add(PathUserAction(point = TouchPoint(event.x, event.y), actionType = PathUserActionType.LINE_TO))
-                        deScaledPathEventList[deScaledPathEventList.size - 1] = deScaledPathEventList[deScaledPathEventList.size - 1].copy(path = deScalePath(currentPath!!))
+                        //currentSerializablePathEvent?.path?.add(PathUserAction(point = TouchPoint(event.x, event.y), actionType = PathUserActionType.LINE_TO))
+                        //deScaledPathEventList[deScaledPathEventList.size - 1] = deScaledPathEventList[deScaledPathEventList.size - 1].copy(path = deScalePath(currentPath!!))
                         currentPathList[currentPathList.size - 1] = currentPathList[currentPathList.size - 1].copy(path = currentPath!!)
-                        sketchCanvasEventsHandler?.addPathEventToRoom(currentSerializablePathEvent!!)
-                        currentSerializablePathEvent = null
+                        //sketchCanvasEventsHandler?.addPathEventToRoom(currentSerializablePathEvent!!)
+                        //currentSerializablePathEvent = null
                         currentPath = null
-                        invalidate()
+                        val transformJob = pathDataComputationCoroutineScope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
+                            transformPath(currentPathList)
+                        }
+                        GlobalScope.launch {
+                            transformPathLazyJobsFlow.emit(transformJob)
+                        }
                     }
                 }
             }
             else{
                 scaleGestureDetector.onTouchEvent(event)
                 gestureListener.onTouchEvent(event)
-                invalidate()
             }
         }
         return true
     }
 
+    val coroutineExceptionHandler = CoroutineExceptionHandler{ scope, throwable->
+        Log.v("Vasi testing", "${throwable.message} occured.")
+
+    }
+
     override fun onScale(detector: ScaleGestureDetector): Boolean {
-        scaleFactor *= detector.scaleFactor
+
+        val scale = (scaleFactor.toString().length - scaleFactor.scale()) + 8
+        val factor = BigDecimal(detector.scaleFactor.toDouble())
+        if (scaleFactor.multiply(factor).toFloat() > 1f){
+            scaleFactor = scaleFactor.multiply(factor).setScale(scale, RoundingMode.UP)
+        }
+        else{
+            scaleFactor = scaleFactor.multiply(factor, MathContext(7))
+        }
+        val transformJob = pathDataComputationCoroutineScope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
+            transformPath(currentPathList)
+        }
+        GlobalScope.launch {
+            transformPathLazyJobsFlow.emit(transformJob)
+        }
         "current scale factor...${scaleFactor}".log()
+        "current scale factor scale...${scaleFactor.scale()}".log()
         return true
     }
 
@@ -290,10 +382,18 @@ class SketchCanvas@JvmOverloads constructor(
         distanceX: Float,
         distanceY: Float
     ): Boolean {
-        "offset before change...dx...${distanceX/scaleFactor}...dy...${distanceY/scaleFactor}...X...${offsetX}...Y...${offsetY}".log()
-        offsetX += (distanceX/scaleFactor)
-        offsetY += (distanceY/scaleFactor)
-        "current offset...X...${offsetX}...Y...${offsetY}".log()
+        //"offset before change...dx...${distanceX/scaleFactor}...dy...${distanceY/scaleFactor}...X...${offsetX}...Y...${offsetY}".log()
+        offsetX.add(Pair(distanceX,scaleFactor))
+        offsetY.add(Pair(distanceY,scaleFactor))
+        val transformJob = pathDataComputationCoroutineScope.launch(Dispatchers.IO, start = CoroutineStart.LAZY) {
+            transformPath(currentPathList)
+        }
+        GlobalScope.launch {
+            transformPathLazyJobsFlow.emit(transformJob)
+        }
+//        offsetX.add( scaleFactor.divide(BigDecimal(1/distanceX.toDouble())))
+//        offsetY.add( scaleFactor.divide(BigDecimal(1/distanceY.toDouble())))
+//        "current offset...X...${offsetX}...Y...${offsetY}".log()
         return true
     }
 
@@ -307,6 +407,15 @@ class SketchCanvas@JvmOverloads constructor(
         velocityY: Float
     ): Boolean {
         return true
+    }
+
+
+    fun calculateOffset(offsetedList: List<Pair<Float, BigDecimal>>, scale: BigDecimal): BigDecimal{
+        var totalOffset = BigDecimal(0)
+        offsetedList.forEach {
+            totalOffset = totalOffset.add( BigDecimal((it.first).toDouble()).divide(it.second, scale.scale() + 5, RoundingMode.CEILING))
+        }
+        return totalOffset
     }
 
 }
